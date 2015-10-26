@@ -14,40 +14,32 @@
 ;; used by farg-count-jvm:
 (def ^:private ^:const is-function? #{"invoke" "doInvoke"})
 (def ^:private variadic-fn?    (comp (partial = "doInvoke") method-name))
-(def ^:private take-functions  (partial filter (comp is-function? method-name)))
+(def ^:private take-fn-methods (partial filter (comp is-function? method-name)))
 
 ;; used by farg-count-jvm and farg-count-clj:
 (def ^:private variadic?       (comp true? first))
 (def ^:private is-variadic?    (partial any? variadic?))
 (def ^:private only-counters   (partial map last))
+(def ^:private count-meth-args (partial map (juxt variadic-fn? method-argc)))
 (def ^:private gen-fargs-map   (partial zipmap [:variadic :arities]))
 (def ^:private to-sorted-set   (juxt first (comp (partial into (sorted-set)) last)))
 (def ^:private gen-fargs-seq   (juxt is-variadic? only-counters))
 
-(defn- count-and-mark-fn-args
+(defn- count-fn-args
   "Takes a sequence of vectors representing arities (first element represents
   the number of obligatory arguments and second the total number of arguments,
   including variadic parameter, if any). It produces a sequence in which each
   element is a vector representing an arity, which the first element is
   a boolean flag that informs whether the arity is variadic and the second is
-  a number of its obligatory arguments.
-  
+  a number of its obligatory arguments (including variadic parameter).
+    
   It is intented to be used by the farg-count-clj function."
   [arglists]
-  (map #(let [[ca cr] (fn-arg-counters %)]
-          [(not= cr ca) cr]) arglists))
-
-(defn- count-and-mark-method-args
-  "Takes a sequence of Java methods and produces a sequence of vectors. First
-  elements are boolean flags that inform whether the method is variadic and
-  second are the numbers of its obligatory arguments.
-  
-  It is intented to be used by the farg-count-jvm function."
-  [m]
-  (map #(let [v (variadic-fn? %)
-              c (- (method-argc %) (if v 1 0))]
-          [v c]) m))
-
+  (map #(let [[ca cr] (fn-arg-counters %)
+              vari    (not= cr ca)
+              cntr    (if vari (inc cr) cr)]
+          [vari cntr]) arglists))
+ 
 (defn argc-clj
   "Uses the given Var's :arglists metadata value to determine the number of
   arguments taken by a function that the Var is bound to. See (doc argc)
@@ -56,7 +48,7 @@
   (when-let [fun (ensure-fn varobj)]
     (some-> varobj
             meta :arglists
-            count-and-mark-fn-args
+            count-fn-args
             gen-fargs-seq
             to-sorted-set
             gen-fargs-map
@@ -69,8 +61,8 @@
   (when-let [fun (ensure-fn f)]
     (some-> fun
             class .getDeclaredMethods
-            take-functions
-            count-and-mark-method-args
+            take-fn-methods
+            count-meth-args
             gen-fargs-seq
             to-sorted-set
             gen-fargs-map
@@ -86,9 +78,7 @@
   :engine   – :clj (if metadata were used to determine arities);
               :jvm (if Java reflection methods were used to determine arities).
   
-  Variadic parameter is not counted as one of possible arguments. However, note
-  that variadic arguments always beat any number of positional arguments when
-  determining most wide arity.
+  Variadic parameter is counted as one of the possible arguments.
   
   If the given argument cannot be used to obtain a Var bound to a functon or
   a function object then it returns nil."
@@ -177,9 +167,17 @@
     (let [carg (count args)
           expe (nearest-right arities carg)
           vari (and variadic (= expe (last arities)))
-          padn (repeat (- expe carg) nil)
+          padn (- expe carg)
           tken (if vari (max expe carg) expe)
-          adja (take tken (concat args padn))
+          adja (take tken (concat args (repeat padn nil)))
           resu (apply f adja)]
-      (if verbose (assoc uber-args :args args :result resu) resu))))
+      (if verbose (assoc uber-args
+                         :args          args
+                         :args-received carg
+                         :args-sent     tken
+                         :result        resu
+                         :arity-matched expe
+                         :variadic-used vari
+                         :args-padded   (if (< padn 0) 0 padn))
+          resu))))
 
