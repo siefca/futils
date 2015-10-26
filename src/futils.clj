@@ -1,7 +1,7 @@
 (ns ^{:doc    "futils library, wrapping functions."
       :author "Paweł Wilk"}
-    
-    futils
+
+    futils.core
   
   (:require [futils.utils :refer :all]))
 
@@ -170,7 +170,7 @@
   When a variadic function is detected and its variadic arity is the closest to
   a number of arguments passed then all of them will be used during a function
   call."
-  [& {:keys [:f :arities :variadic :debug] :as uber-args
+  [& {:keys [:f :arities :variadic :verbose] :as uber-args
       :or   {:verbose false, :variadic false}}]
   {:pre [(ifn? f) (not (empty? arities))]}
   (fn [& args]
