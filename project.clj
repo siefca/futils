@@ -1,4 +1,4 @@
-(defproject futils "0.1.0"
+(defproject pl.randomseed/futils "0.1.0"
   :description "Function Utilities library"
   :license {:name "LGPL License", :url "https://opensource.org/licenses/lgpl-3.0.html"}
   :scm     {:name "git", :url "https://github.com/siefca/futils"}
