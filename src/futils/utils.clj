@@ -25,6 +25,11 @@
   (when-let [fun (if (var? f) (deref f) f)]
     (when (ifn? fun) fun)))
 
+(defn ^long not-negative
+  "Ensures that a given value is positive or 0. If it's negative it returns 0."
+  [^long n]
+  (if (neg? n) 0 n))
+
 ;; Java interop.
 ;; 
 (defn method-name
