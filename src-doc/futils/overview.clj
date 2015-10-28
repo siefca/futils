@@ -1,4 +1,4 @@
-(ns midje-doc.futils.overview)
+(ns documentation.futils.overview)
 
 [[:chapter {:title "Introduction"}]]
 
@@ -29,4 +29,10 @@ or:
 `  (:require [futils.core :as futils]))`
 
 "
+
+[[:chapter {:title "Usage"}]]
+
+[[:section {:title "`argc`"}]]
+
+[[:file {:src "src-doc/futils/fn-argc.clj"}]]
 
