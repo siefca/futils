@@ -3,7 +3,13 @@
 [[:chapter {:title "Introduction"}]]
 
 "`futils` is a library that provides a set of forms that add some abstractions
-for managing functions in Clojure."
+for managing functions in Clojure.
+
+Currently implemented macros and functions are:
+
+* `argc` – counts arguments a function takes (for all arities),
+* `frelax` – wraps a function in a way that it accepts any number of arguments,
+* `args-relax` – like `frelax` but it requires to explicitly describe the accepted arities."
 
 [[:chapter {:title "Installation"}]]
 
@@ -11,12 +17,14 @@ for managing functions in Clojure."
 
 `[pl.randomseed/futils `\"`{{PROJECT.version}}`\"`]`
 
-or
+Then require it in your program:
 
-`[pl.randomseed/futils.PACKAGE `\"`{{PROJECT.version}}`\"`]`
+`(require 'futils.core :as futils)`
 
-or
+or:
 
-`[pl.randomseed/futils.PACKAGE.NAMESPACE `\"`{{PROJECT.version}}`\"`]`
+`(ns your-namespace`
+`  (:require [futils.core :as futils]))`
+
 "
 
