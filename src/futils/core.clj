@@ -68,28 +68,46 @@
             gen-fargs-map
             (assoc :f fun :engine :jvm))))
 
+;; used by argc:
+(def ^:private x-ddec  (map (comp dec dec)))
+(def ^:private dec-set (partial into (sorted-set) x-ddec))
+
+(defn macroize-argc
+  "Takes argc output (a map), sets :macro to true and updates :arities in a way
+  that all numbers are decreased two times."
+  [a]
+  (when-let [ar a]
+    (-> ar
+        (update :arities dec-set)
+        (assoc  :macro true))))
+
 (defmacro argc
   "Determines the number of arguments that the given function takes and returns
   a map containing these keys:
   
-  :f        – a function object  
-  :arities  – a sorted set of obligatory argument counts for all arities,
-  :variadic – a flag informing whether the widest arity is variadic,
-  :engine   – :clj (if metadata were used to determine arities);
-              :jvm (if Java reflection methods were used to determine arities).
+  :arities  – a sorted set of argument counts for all arities,
+  :engine   – :clj (if metadata were used to determine arities – DEPRECATED);
+              :jvm (if Java reflection methods were used to determine arities),
+  :f        – a function object,
+  :macro    – a flag informing whether the given object is a macro,
+  :variadic – a flag informing whether the widest arity is variadic.
   
   Variadic parameter is counted as one of the possible arguments.
+  
+  Macro flag (:macro) is only present when macro was detected. Otherwise it's
+  missing.
   
   If the given argument cannot be used to obtain a Var bound to a functon or
   a function object then it returns nil."
   [f]
-  (if (symbol? f)
-    `(let [fvar# (resolve (quote ~f))]
-       (or (when (var? fvar#) (argc-clj fvar#)) (argc-jvm ~f)))
-    `(let [f# ~f]
-       (if (var? f#)
-         (or (argc-clj f#) (argc-jvm (deref f#)))
-         (argc-jvm f#)))))
+  (let [m (and (symbol? f) (resolve f))]
+    (if (and (var? m) (:macro (meta m)))
+      `(macroize-argc (argc-jvm ~m))
+      `(let [f# ~f r# (argc-jvm f#)]
+         (if (and (var? f#) (:macro (meta f#)))
+           (macroize-argc r#)
+           r#)))))
+
 (defn mapply
   "Like apply but works on named arguments. Takes function f and a list of
   arguments to be passed were the last argument should be a map that will be
