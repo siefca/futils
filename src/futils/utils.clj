@@ -50,5 +50,11 @@
 
 ;; Simlifiers.
 ;;
-(def any? (comp true? some))
+(def
+  ^{:added "0.1"
+    :arglists '([^clojure.lang.Fn pred ^clojure.lang.Sequential coll])}
+  any?
+  "Returns true if a collection contains at least one element for which pred is
+  not false and not nil."
+  (comp boolean some))
 
