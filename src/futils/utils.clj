@@ -9,7 +9,7 @@
   "For the given sorted set of integer values and the given value returns the
   closest value from the set, picking up the highest one in case of no exact
   match."
-  [s ^long v]
+  [^clojure.lang.IPersistentSet s ^long v]
   (if-let [x (first (subseq s >= v))]
     x
     (when-let [x (first (rsubseq s < v))]
@@ -18,7 +18,7 @@
 ;; Coercions and ensurances.
 ;;
 
-(defn ensure-fn
+(defn ^clojure.lang.IFn ensure-fn
   "If a value of the argument f is a Var object it dereferences it first. If the
   resulting object is not a function it returns nil."
   [f]

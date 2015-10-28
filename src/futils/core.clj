@@ -44,7 +44,7 @@
   "Uses the given Var's :arglists metadata value to determine the number of
   arguments taken by a function that the Var is bound to. See (doc argc)
   for more specific documentation."
-  [varobj]
+  [^clojure.lang.Var varobj]
   (when-let [fun (ensure-fn varobj)]
     (some-> varobj
             meta :arglists
@@ -57,7 +57,7 @@
 (defn argc-jvm
   "Uses JVM reflection calls to determine number of arguments the given function
   takes. Returns a map. See (doc argc) for more specific documentation."
-  [f]
+  [^clojure.lang.IFn f]
   (when-let [fun (ensure-fn f)]
     (some-> fun
             class .getDeclaredMethods
@@ -160,8 +160,14 @@
   When a variadic function is detected and its variadic arity is the closest to
   a number of arguments passed then all of them will be used during a function
   call."
-  [& {:keys [:f :arities :variadic :verbose] :as uber-args
-      :or   {:verbose false, :variadic false}}]
+  [^clojure.lang.IFn f
+   & {:keys [^long arities
+             ^clojure.lang.IFn pad-fn
+             ^Boolean variadic
+             ^Boolean verbose
+             pad-val]
+      :as uber-args
+      :or {verbose false, variadic false}}]
   {:pre [(ifn? f) (not (empty? arities))]}
   (fn [& args]
     (let [carg (count args)
