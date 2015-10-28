@@ -60,8 +60,8 @@
 (defn argc-jvm
   "Uses JVM reflection calls to determine number of arguments the given function
   takes. Returns a map. See (doc argc) for more specific documentation."
-  [^clojure.lang.IFn f]
   {:added "0.1"}
+  [^clojure.lang.Fn f]
   (when-let [fun (ensure-fn f)]
     (some-> fun
             class .getDeclaredMethods
@@ -120,13 +120,13 @@
   decomposed and passed as named arguments.
   
   Returns the result of calling f."
-  [^clojure.lang.IFn f & args]
   {:added "0.2"}
+  [^clojure.lang.Fn f & args]
   (apply f (concat (butlast args) (mapcat identity (last args)))))
 
 (defn- frepeat-core
   [^long nr
-   ^clojure.lang.IFn f
+   ^clojure.lang.Fn f
    ^clojure.lang.IPersistentMap params]
   {:added "0.2"}
   (lazy-seq
@@ -163,18 +163,18 @@
   
   Values associated with :iteration and :previous keys will always change during
   each call."
-  {:arglists '([^clojure.lang.IFn f]
-               [^clojure.lang.IFn f ^clojure.lang.IPersistentMap kvs]
-               [^long n ^clojure.lang.IFn f]
-               [^long n ^clojure.lang.IFn f ^clojure.lang.IPersistentMap kvs])}
-  ([^clojure.lang.IFn f]
   {:added "0.2"
+   :arglists '([^clojure.lang.Fn f]
+               [^clojure.lang.Fn f ^clojure.lang.IPersistentMap kvs]
+               [^long n ^clojure.lang.Fn f]
+               [^long n ^clojure.lang.Fn f ^clojure.lang.IPersistentMap kvs])}
+  ([^clojure.lang.Fn f]
    (frepeat-core 1 f nil))
   ([n-f f-m]
    (if (number? n-f)
      (frepeat (long n-f) f-m nil)
      (frepeat-core 1 n-f f-m)))
-  ([^long n ^clojure.lang.IFn f ^clojure.lang.IPersistentMap kvs]
+  ([^long n ^clojure.lang.Fn f ^clojure.lang.IPersistentMap kvs]
    (take n (frepeat-core 1 f (assoc kvs :iterations n)))))
 
 (defmacro frelax
@@ -280,10 +280,10 @@
   
   Values associated with :iteration and :previous keys will change during each
   call, rest of them will remain constant."
-  [^clojure.lang.IFn f
   {:added "0.1"}
+  [^clojure.lang.Fn f
    & {:keys [^long arities
-             ^clojure.lang.IFn pad-fn
+             ^clojure.lang.Fn pad-fn
              ^Boolean variadic
              ^Boolean verbose
              pad-val]
