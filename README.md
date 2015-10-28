@@ -10,7 +10,7 @@ The current release is 0.1.0. To use futils in your project, add the following
 to the `dependencies` section of `project.clj`:
 
 ```
-[pl.randomseed/futils "0.1.0"]
+[pl.randomseed/futils "0.1.1"]
 ```
 
 ## Components

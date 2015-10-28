@@ -9,7 +9,9 @@ Currently implemented macros and functions are:
 
 * `argc` – counts arguments a function takes (for all arities),
 * `frelax` – wraps a function in a way that it accepts any number of arguments,
-* `args-relax` – like `frelax` but it requires to explicitly describe the accepted arities."
+* `args-relax` – like `frelax` but it requires to explicitly describe the accepted arities,
+* `frepeat` – creates a sequence of results returned by the given function (which uses named arguments),
+* `mapply` – works like apply but for named arguments."
 
 [[:chapter {:title "Installation"}]]
 
