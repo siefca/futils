@@ -34,6 +34,13 @@
   [^long n]
   (if (neg? n) 0 n))
 
+(defn ^long pos-
+  "Like - operator but works for 2 numbers and never returns negative values. If
+  value is negative, it will return 0."
+  {:added "0.3"}
+  [^long x ^long y]
+  (not-negative (- x y)))
+
 ;; Java interop.
 ;; 
 (defn method-name
