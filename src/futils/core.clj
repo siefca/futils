@@ -159,8 +159,8 @@
   bound to a Var or a Var object itself) or using JVM reflection calls to
   anonymous class representing a function object (in case of function object).
   
-  To determine the number of arguments function expects the nearest arity is
-  picked up by matching a number of arguments actually passed with all arities.
+  To determine the number of arguments the nearest arity is picked up by
+  matching a number of passed arguments to number of arguments for each arity.
   If there is no exact match then the next arity capable of taking all arguments
   is selected.
   
@@ -175,39 +175,40 @@
   a number of arguments passed then all of them will be used during a function
   call (no argument will be ignored).
   
-  When there is a second argument of the value :verbose then it causes generated
-  function to return a map containing all passed arguments (under the :args
-  key), diagnostic information about original function's arities (:variadic,
-  :arities and :f keys) and a result of calling the original function (:result
-  key)."
-  ([f]
-   `(frelax ~f nil))
-  ([f vflag]
-   `(apply args-relax (mapcat identity (assoc (argc ~f)
-                                              :verbose (= :verbose ~vflag))))))
+  It takes optional named arguments:
+  
+  :pad-fn   – a function that generates values for padding,
+  :pad-val  – a value to use for padding instead of nil,  
+  :verbose  – a switch (defaults to false) that if set to true causes wrapper to
+              return a map containing additional information.
+  
+  See (doc args-relax) for more information about :pad-fn and :verbose options."
+  [f & {:as options}]
+  `(let [opts# (into ~options (argc ~f))]
+     (mapply args-relax (:f opts#) opts#)))
 
 (defn args-relax
   "Returns a variadic function object that calls the given function, adjusting
   the number of passed arguments to a nearest arity. It cuts argument list or
   pads it with nil values if necessary.
   
-  It takes 3 named arguments assigned to keywords:
+  It takes 1 positional, obligatory argument, which should be a function (f) and
+  two named, keyword arguments:
   
-  :f        – a function object  
-  :arities  – a sorted set of obligatory argument counts for all arities,
+  :arities  – a sorted set of argument counts for all arities,
   :variadic – a flag informing whether the widest arity is variadic.
   
-  It takes one optional named argument:
+  It also makes use of optional named arguments:
   
-  :verbose – a switch (defaults to false) that if set to true causes wrapper to
-             return a map containing arities information (in :variadic, :arities
-             and :f keys) along with all arguments passed (:args key) and
-             a result of calling the original function (:result key).
+  :pad-fn   – a function that generates values for padding,
+  :pad-val  – a value to use for padding instead of nil,  
+  :verbose  – a switch (defaults to false) that if set to true causes wrapper
+              to return a map containing additional information.
   
-  To determine the number of arguments function expects the nearest arity is
-  picked up by matching a number of arguments actually passed with all numbers
-  from a set (passed as :arities keyword argument). If there is no exact match
-  then the next arity capable of taking all arguments is selected.
+  To determine the number of arguments the nearest arity is picked up by
+  matching a number of passed arguments to each number from a set (passed
+  as :arities keyword argument). If there is no exact match then the next arity
+  capable of taking all arguments is selected.
   
   If the expected number of arguments is lower than a number of arguments
   actually passed to a wrapper call, the exceeding ones will be ignored.
@@ -217,8 +218,40 @@
   as extra arguments.
   
   When a variadic function is detected and its variadic arity is the closest to
-  a number of arguments passed then all of them will be used during a function
-  call."
+  a number of arguments passed then all of them will be used to call
+  a function.
+  
+  If the :verbose flag is set the result will be a map containing the following:
+  
+  :argc-received – a number of arguments received by the wrapper,
+  :argc-sent     – a number of arguments passed to a function,
+  :argc-cutted   – a number of arguments ignored,
+  :argc-padded   – a number of arguments padded with nil values,
+  :args-received – arguments received by the wrapper,
+  :args-sent     – arguments passed to a function,
+  :arities       – a sorted set of argument counts for all arities,
+  :arity-matched – an arity (as a number of arguments) that matched,
+  :engine        – a method used to check arities (:clj or :jvm),
+  :f             – a function object,
+  :result        – a result of calling the original function,
+  :variadic      – a flag telling that the widest arity is variadic,
+  :variadic-used – a flag telling that a variadic arity was used,
+  :verbose       – a verbosity flag (always true in this case).
+  
+  If a padding function is given (with :pad-fn) it should take keyword
+  arguments. Each call will receive the following:
+  
+  :argc-received – a number of arguments received by the wrapper,
+  :arity-matched – an arity (as a number of arguments) that matched,
+  :f             – wrapped function object,
+  :iteration     – a number of current iteration (starting from 1),
+  :iterations    – a total number of iterations,
+  :previous      – a value of previously calculated argument (the result
+                   of a previous call or a value of the last positional
+                   argument when padding function is called for the first time).
+  
+  Values associated with :iteration and :previous keys will change during each
+  call, rest of them will remain constant."
   [^clojure.lang.IFn f
    & {:keys [^long arities
              ^clojure.lang.IFn pad-fn
@@ -234,15 +267,26 @@
           vari (and variadic (= expe (last arities)))
           padn (- expe carg)
           tken (if vari (max expe carg) expe)
-          adja (take tken (concat args (repeat padn nil)))
+          pads (if (nil? pad-fn)
+                 (repeat  padn pad-val)
+                 (frepeat padn pad-fn
+                          {:args-received  args
+                           :arity-matched  expe
+                           :previous (last args)
+                           :f f}))
+          adja (take tken (concat args pads))
           resu (apply f adja)]
-      (if verbose (assoc uber-args
-                         :args          args
-                         :args-received carg
-                         :args-sent     tken
-                         :result        resu
-                         :arity-matched expe
-                         :variadic-used vari
-                         :args-padded   (if (< padn 0) 0 padn))
+      (if verbose
+        (assoc uber-args
+               :f f
+               :args-received args
+               :argc-received carg
+               :args-sent     adja
+               :argc-sent     tken
+               :result        resu
+               :arity-matched expe
+               :variadic-used vari
+               :argc-padded   (not-negative padn)
+               :argc-cutted   (not-negative (- padn)))
           resu))))
 
