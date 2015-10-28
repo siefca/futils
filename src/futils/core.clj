@@ -72,18 +72,14 @@
             gen-fargs-map
             (assoc :f fun :engine :jvm))))
 
-;; used by argc:
-(def ^:private x-ddec  (map (comp dec dec)))
-(def ^:private dec-set (partial into (sorted-set) x-ddec))
-
-(defn macroize-argc
+(defn- macroize-argc
   "Takes argc output (a map), sets :macro to true and updates :arities in a way
   that all numbers are decreased two times."
   {:added "0.2"}
   [a]
   (when-let [ar a]
     (-> ar
-        (update :arities dec-set)
+        (update :arities (partial into (sorted-set) (map #(pos- % 2))))
         (assoc  :macro true))))
 
 (defmacro argc
@@ -108,10 +104,10 @@
   [f]
   (let [m (and (symbol? f) (resolve f))]
     (if (and (var? m) (:macro (meta m)))
-      `(macroize-argc (argc-jvm ~m))
+      `(#'macroize-argc (argc-jvm ~m))
       `(let [f# ~f r# (argc-jvm f#)]
          (if (and (var? f#) (:macro (meta f#)))
-           (macroize-argc r#)
+           (#'macroize-argc r#)
            r#)))))
 
 (defn mapply
