@@ -99,6 +99,56 @@
   [^clojure.lang.IFn f & args]
   (apply f (concat (butlast args) (mapcat identity (last args)))))
 
+(defn- frepeat-core
+  [^long nr
+   ^clojure.lang.IFn f
+   ^clojure.lang.IPersistentMap params]
+  (lazy-seq
+   (let [par (assoc params :iteration nr)
+         res (mapply f par)]
+     (cons res
+           (frepeat-core (inc nr) f (assoc par :previous res))))))
+
+(defn frepeat
+  "Returns a lazy sequence of results produced by the given function f
+  which should accept named arguments.
+  
+  If the first argument passed to frepeat is a number and the second is
+  a function it will limit the iterations to the specified count. If the numeric
+  argument is missing and only a function object is given the frepeat will
+  produce infinite sequence of calls.
+  
+  The last, optional argument should be a map that initializes named arguments
+  that will be passed to the first and subsequent calls to f.
+  
+  Additionally each call to f will pass the following keyword arguments:
+  
+  :iteration     – a number of current iteration (starting from 1),
+  :previous      – a result of the previous call to f.
+  
+  The first call to f will pass the following:
+  
+  :iteration     – 1,
+  :iterations    – a total number of iterations (if nr was given).
+  
+  It is possible to set the initial value of :previous if there is a need for
+  that (by passing it to frepeat) or shadow the :iterations after the first call
+  (by setting it in the passed function f).
+  
+  Values associated with :iteration and :previous keys will always change during
+  each call."
+  {:arglists '([^clojure.lang.IFn f]
+               [^clojure.lang.IFn f ^clojure.lang.IPersistentMap kvs]
+               [^long n ^clojure.lang.IFn f]
+               [^long n ^clojure.lang.IFn f ^clojure.lang.IPersistentMap kvs])}
+  ([^clojure.lang.IFn f]
+   (frepeat-core 1 f nil))
+  ([n-f f-m]
+   (if (number? n-f)
+     (frepeat (long n-f) f-m nil)
+     (frepeat-core 1 n-f f-m)))
+  ([^long n ^clojure.lang.IFn f ^clojure.lang.IPersistentMap kvs]
+   (take n (frepeat-core 1 f (assoc kvs :iterations n)))))
 
 (defmacro frelax
   "Returns a variadic function object that calls the given function f, adjusting
