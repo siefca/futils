@@ -1,14 +1,14 @@
 (defproject pl.randomseed/futils "0.3.0"
   :description "Function Utilities library"
-  :url "https://randomseed.pl/en/software/futils"
+  :url "https://randomseed.pl/software/futils"
   
   :license {:name "LGPL License", :url "https://opensource.org/licenses/lgpl-3.0.html"}
   :scm     {:name "git", :url "https://github.com/siefca/futils"}
   
   :dependencies [[org.clojure/clojure "1.7.0"]]
   
-  :profiles {:dev {:dependencies [[midje "1.6.3"]]
-                   :plugins [[lein-midje "3.1.3"]
+  :profiles {:dev {:dependencies [[midje "1.8.1"]]
+                   :plugins [[lein-midje "3.2"]
                              [lein-midje-doc "0.0.23"]]}}
   
   :documentation {:site   "futils"
@@ -23,9 +23,9 @@
                            :subtitle  "Function Utilities Library"
                            :author    "Paweł Wilk"
                            :email     "pw@gnu.org"}}
-                  :html {:home "index",
+                  :html {:home "index"
                          :navigation ["home"
-                                      {:link "https://github.com/siefca/futils",
+                                      {:link "https://github.com/siefca/futils"
                                        :text "source"}]}
                   :link {:auto-tag    true
                          :auto-number true}}
