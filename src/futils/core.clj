@@ -48,7 +48,7 @@
   for more specific documentation."
   {:added "0.1"}
   [^clojure.lang.Var varobj]
-  (when-let [fun (ensure-fn varobj)]
+  (when-let [fun (require-fn varobj)]
     (some-> varobj
             meta :arglists
             count-fn-args
@@ -62,7 +62,7 @@
   takes. Returns a map. See (doc argc) for more specific documentation."
   {:added "0.1"}
   [^clojure.lang.Fn f]
-  (when-let [fun (ensure-fn f)]
+  (when-let [fun (require-fn f)]
     (some-> fun
             class .getDeclaredMethods
             take-fn-methods
@@ -173,7 +173,7 @@
   ([^long n ^clojure.lang.Fn f ^clojure.lang.IPersistentMap kvs]
    (take n (frepeat-core 1 f (assoc kvs :iterations n)))))
 
-(defmacro frelax
+(defmacro relax
   "Returns a variadic function object that calls the given function f, adjusting
   the number of passed arguments to a nearest arity of f. It cuts argument list
   or pads it with nil values if necessary.

@@ -19,8 +19,7 @@
 
 ;; Coercions and ensurances.
 ;;
-
-(defn ^clojure.lang.Fn ensure-fn
+(defn ^clojure.lang.Fn require-fn
   "If a value of the argument f is a Var object it dereferences it first. If the
   resulting object is not a function it returns nil."
   {:added "0.1"}
