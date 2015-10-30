@@ -34,5 +34,5 @@ or:
 
 [[:section {:title "`argc`"}]]
 
-[[:file {:src "src-doc/futils/fn-argc.clj"}]]
+[[:file {:src "test/futils/core/argc.clj"}]]
 
