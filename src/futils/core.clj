@@ -1,30 +1,133 @@
 (ns
+    
     ^{:doc    "futils library, wrapping functions."
       :author "Paweł Wilk"}
-
+    
     futils.core
   
   (:require [futils.utils :refer :all]))
 
 ;; used by farg-count-clj:
-(def ^{:private true :added "0.1"} not-ampersand?  (partial not= '&))
-(def ^{:private true :added "0.1"} obligatory-args (partial take-while not-ampersand?))
-(def ^{:private true :added "0.1"} obligatory-argc (comp count obligatory-args))
-(def ^{:private true :added "0.1"} fn-arg-counters (juxt count obligatory-argc))
+;; 
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag Boolean
+    :arglists '([^Character c])}
+  not-ampersand?
+  (partial not= '&))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.ISeq
+    :arglists '([^clojure.lang.ISeq coll])}
+  obligatory-args
+  (partial take-while not-ampersand?))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag long
+    :arglists '([^clojure.lang.ISeq coll])}
+  obligatory-argc
+  (comp count obligatory-args))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.IPersistentVector
+    :arglists '([^clojure.lang.ISeq coll])}
+  fn-arg-counters
+  (juxt count obligatory-argc))
 
 ;; used by farg-count-jvm:
-(def ^{:private true :added "0.1"} ^:const is-function? #{"invoke" "doInvoke"})
-(def ^{:private true :added "0.1"} variadic-fn?    (comp (partial = "doInvoke") method-name))
-(def ^{:private true :added "0.1"} take-fn-methods (partial filter (comp is-function? method-name)))
+;; 
+
+(def
+  ^{:private true
+    :const true
+    :added "0.1"
+    :tag Boolean
+    :arglists '([^String name])}
+  is-function?
+  #{"invoke" "doInvoke"})
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag Boolean
+    :arglists '([^String name])}
+  variadic-fn?
+  (comp (partial = "doInvoke") method-name))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.ISeq
+    :arglists '([^clojure.lang.ISeq coll])}
+  take-fn-methods
+  (partial filter (comp is-function? method-name)))
 
 ;; used by farg-count-jvm and farg-count-clj:
-(def ^{:private true :added "0.1"} variadic?       (comp true? first))
-(def ^{:private true :added "0.1"} is-variadic?    (partial any? variadic?))
-(def ^{:private true :added "0.1"} only-counters   (partial map last))
-(def ^{:private true :added "0.1"} count-meth-args (partial map (juxt variadic-fn? method-argc)))
-(def ^{:private true :added "0.1"} gen-fargs-map   (partial zipmap [:variadic :arities]))
-(def ^{:private true :added "0.1"} to-sorted-set   (juxt first (comp (partial into (sorted-set)) last)))
-(def ^{:private true :added "0.1"} gen-fargs-seq   (juxt is-variadic? only-counters))
+;;
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag Boolean
+    :arglists '([^Boolean flag])}
+  variadic?
+  (comp true? first))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag Boolean
+    :arglists '([^clojure.lang.ISeq coll])}
+  is-variadic?
+  (partial any? variadic?))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.ISeq
+    :arglists '([^clojure.lang.ISeq coll])}
+  only-counters
+  (partial map last))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.ISeq
+    :arglists '([^clojure.lang.ISeq coll])}
+  count-meth-args
+  (partial map (juxt variadic-fn? method-argc)))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.IPersistentMap
+    :arglists '([^clojure.lang.ISeq coll])}
+  gen-fargs-map
+  (partial zipmap [:variadic :arities]))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.IPersistentVector
+    :arglists '([^clojure.lang.ISeq coll])}
+  gen-fargs-seq
+  (juxt is-variadic? only-counters))
+
+(def
+  ^{:private true
+    :added "0.1"
+    :tag clojure.lang.IPersistentVector
+    :arglists '([^clojure.lang.IPersistentVector v])}
+  to-sorted-set
+  (juxt first (comp (partial into (sorted-set)) second)))
 
 (defn- count-fn-args
   "Takes a sequence of vectors representing arities (first element represents
@@ -35,8 +138,9 @@
   a number of its obligatory arguments (including variadic parameter).
     
   It is intented to be used by the farg-count-clj function."
-  {:added "0.1"}
-  [arglists]
+  {:added "0.1"
+   :tag clojure.lang.ISeq}
+  [^clojure.lang.ISeq arglists]
   (map #(let [[ca cr] (fn-arg-counters %)
               vari    (not= cr ca)
               cntr    (if vari (inc cr) cr)]
@@ -46,7 +150,8 @@
   "Uses the given Var's :arglists metadata value to determine the number of
   arguments taken by a function that the Var is bound to. See (doc argc)
   for more specific documentation."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag clojure.lang.IPersistentMap}
   [^clojure.lang.Var varobj]
   (when-let [fun (require-fn varobj)]
     (some-> varobj
@@ -60,7 +165,8 @@
 (defn argc-jvm
   "Uses JVM reflection calls to determine number of arguments the given function
   takes. Returns a map. See (doc argc) for more specific documentation."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag clojure.lang.IPersistentMap}
   [^clojure.lang.Fn f]
   (when-let [fun (require-fn f)]
     (some-> fun
@@ -75,8 +181,9 @@
 (defn- macroize-argc
   "Takes argc output (a map), sets :macro to true and updates :arities in a way
   that all numbers are decreased two times."
-  {:added "0.2"}
-  [a]
+  {:added "0.2"
+   :tag clojure.lang.IPersistentMap}
+  [^clojure.lang.IPersistentMap a]
   (when-let [ar a]
     (-> ar
         (update :arities (partial into (sorted-set) (map #(pos- % 2))))
@@ -121,10 +228,11 @@
   (apply f (concat (butlast args) (mapcat identity (last args)))))
 
 (defn- frepeat-core
+  {:added "0.2"
+   :tag clojure.lang.ISeq}
   [^long nr
    ^clojure.lang.Fn f
    ^clojure.lang.IPersistentMap params]
-  {:added "0.2"}
   (lazy-seq
    (let [par (assoc params :iteration nr)
          res (mapply f par)]
@@ -160,6 +268,7 @@
   Values associated with :iteration and :previous keys will always change during
   each call."
   {:added "0.2"
+   :tag clojure.lang.ISeq
    :arglists '([^clojure.lang.Fn f]
                [^clojure.lang.Fn f ^clojure.lang.IPersistentMap kvs]
                [^long n ^clojure.lang.Fn f]
@@ -206,7 +315,8 @@
               return a map containing additional information.
   
   See (doc args-relax) for more information about :pad-fn and :verbose options."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag clojure.lang.Fn}
   [f & {:as options}]
   `(let [opts# (into ~options (argc ~f))]
      (mapply args-relax (:f opts#) opts#)))
@@ -276,7 +386,8 @@
   
   Values associated with :iteration and :previous keys will change during each
   call, rest of them will remain constant."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag clojure.lang.Fn}
   [^clojure.lang.Fn f
    & {:keys [^long arities
              ^clojure.lang.Fn pad-fn

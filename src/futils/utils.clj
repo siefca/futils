@@ -1,16 +1,18 @@
 (ns
+    
     ^{:doc    "futils library, utility functions."
-      :author "Paweł Wilk"}    
-
+      :author "Paweł Wilk"}
+    
     futils.utils)
 
 ;; Set operations.
 ;;
-(defn ^long nearest-right
+(defn nearest-right
   "For the given sorted set of integer values and the given value returns the
   closest value from the set, picking up the highest one in case of no exact
   match."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag long}
   [^clojure.lang.IPersistentSet s ^long v]
   (if-let [x (first (subseq s >= v))]
     x
@@ -19,24 +21,25 @@
 
 ;; Coercions and ensurances.
 ;;
-(defn ^clojure.lang.Fn require-fn
-  "If a value of the argument f is a Var object it dereferences it first. If the
-  resulting object is not a function it returns nil."
-  {:added "0.1"}
+(defn require-fn
+  {:added "0.1"
+   :tag clojure.lang.Fn}
   [f]
   (when-let [fun (if (var? f) (deref f) f)]
     (when (and (ifn? fun) (instance? clojure.lang.Fn fun)) fun)))
 
-(defn ^long not-negative
+(defn not-negative
   "Ensures that a given value is positive or 0. If it's negative it returns 0."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag long}
   [^long n]
   (if (neg? n) 0 n))
 
-(defn ^long pos-
+(defn pos-
   "Like - operator but works for 2 numbers and never returns negative values. If
   value is negative, it will return 0."
-  {:added "0.3"}
+  {:added "0.3"
+   :tag long}
   [^long x ^long y]
   (not-negative (- x y)))
 
@@ -44,23 +47,26 @@
 ;; 
 (defn method-name
   "Returns the name of the given Java method."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag String}
   [^java.lang.reflect.Method m]
   (.getName m))
 
 (defn method-argc
   "Returns the number of arguments Java method takes."
-  {:added "0.1"}
+  {:added "0.1"
+   :tag long}
   [^java.lang.reflect.Method m]
   (alength (.getParameterTypes m)))
 
-;; Simlifiers.
+;; Simplifiers.
 ;;
 (def
   ^{:added "0.1"
-    :arglists '([^clojure.lang.Fn pred ^clojure.lang.Sequential coll])}
+    :tag Boolean
+    :arglists '([^clojure.lang.Fn pred ^clojure.lang.ISeq coll])}
   any?
-  "Returns true if a collection contains at least one element for which pred is
-  not false and not nil."
+  "Returns true if the given collection (coll) contains at least one element for
+  which a value passed as the pred argument is not false and not nil."
   (comp boolean some))
 
