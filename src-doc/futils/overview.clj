@@ -32,7 +32,8 @@ or:
 
 [[:chapter {:title "Usage"}]]
 
-[[:section {:title "`argc`"}]]
+[[:section {:title "argc"}]]
 
 [[:file {:src "test/futils/core/argc.clj"}]]
+
 
