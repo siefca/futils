@@ -11,18 +11,18 @@
 
     
   <link href='http://fonts.googleapis.com/css?family=Raleway:300' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css">
 
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/highlight.min.js"></script>
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/languages/clojure.min.js"></script>
-  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/styles/magula.min.css">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/highlight.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/languages/clojure.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.6/styles/magula.min.css">
 
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular.min.js"></script>
-  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular-cookies.min.js"></script>
-  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.0/ui-bootstrap-tpls.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.2/angular.min.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.2/angular-cookies.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.13.0/ui-bootstrap-tpls.min.js"></script>
   <script type="text/javascript" src="js/angular-highlightjs.min.js"></script>
 
   <link rel="stylesheet" type="text/css" href="css/rdash.min.css">
@@ -56,7 +56,7 @@
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li>
-              <a href="https://github.com/helpshift/hydrox" target="_blank">Github</a></li>
+              <a href="https://github.com/siefca/futils" target="_blank">Github</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -66,7 +66,7 @@
   <div class="container row">
     <div class="col-md-4 scrollspy pull-right">
       <ul id="nav" class="nav hidden-xs hidden-sm" data-spy="affix">
-        <li><a href="#introduction">1  &nbsp;&nbsp; Introduction</a></li><li><a href="#installation">2  &nbsp;&nbsp; Installation</a></li><li><a href="#usage">3  &nbsp;&nbsp; Usage</a><ul class="nav"><li><a href="#argc">3.1  &nbsp;&nbsp; argc</a></li></ul></li>
+        <li><a href="#introduction">1  &nbsp;&nbsp; Introduction</a></li><li><a href="#installation">2  &nbsp;&nbsp; Installation</a></li><li><a href="#usage">3  &nbsp;&nbsp; Usage</a><ul class="nav"><li><a href="#argc">3.1  &nbsp;&nbsp; argc</a></li><li><a href="#relax">3.2  &nbsp;&nbsp; relax</a></li><li><a href="#frepeat">3.3  &nbsp;&nbsp; frepeat</a></li></ul></li>
       </ul>
     </div>
     <div class="col-md-8" id="content">
@@ -76,65 +76,136 @@
           <h4>Function Utilities Library</h4>
         </div>
       </div>
-      <section class="chapter" id="introduction"><h2 class="chapter">1  &nbsp;&nbsp; Introduction</h2><div class="group"><div class="paragraph"><p><code>futils</code> is a library that provides a set of forms that add some abstractions for managing functions in Clojure.</p><p>Currently implemented macros and functions are:</p><ul><li><code>argc</code> – counts arguments a function takes (for all arities),</li><li><code>relax</code> – wraps a function in a way that it accepts any number of arguments,</li><li><code>args-relax</code> – like <code>frelax</code> but it requires to explicitly describe the accepted arities,</li><li><code>frepeat</code> – creates a sequence of results returned by the given function (which uses named arguments),</li><li><code>mapply</code> – works like apply but for named arguments.</li></ul></div></div></section><section class="chapter" id="installation"><h2 class="chapter">2  &nbsp;&nbsp; Installation</h2><div class="group"><div class="paragraph"><p>Add to <code>project.clj</code> dependencies: </p><p><code>&#91;pl.randomseed/futils </code>"<code>0.5.0</code>"<code>&#93;</code></p><p>Then require it in your program:</p><p><code>&#40;require 'futils.core :as futils&#41;</code></p><p>or:</p><p><code>&#40;ns your-namespace</code> <code>  &#40;:require &#91;futils.core :as futils&#93;&#41;&#41;</code></p></div></div></section><section class="chapter" id="usage"><h2 class="chapter">3  &nbsp;&nbsp; Usage</h2><section class="section" id="argc"><h3 class="section">3.1  &nbsp;&nbsp; argc</h3><div class="paragraph"><p>about argc</p></div><div class="code"><div hljs="hljs" language="clojure" no-escape="no-escape">&quot;counts positional arguments&quot;
-    
-    (argc (fn [x]))
-    =&gt; (contains
-  {:arities  #{1}
-   :engine   keyword?
-   :f        ifn?
-   :variadic false})
-    
-    (argc (fn ([x y])([z])))
-    =&gt; (contains
-  {:arities  #{1 2}
-   :variadic false})</div></div><div class="code"><div hljs="hljs" language="clojure" no-escape="no-escape">&quot;counts variadic arguments&quot;
-    
-    (argc (fn [a &amp; b]))
-    =&gt; (contains
-  {:arities  #{2}
-   :variadic true})
-    
-    (argc (fn ([])([&amp; a])))
-    =&gt; (contains
-  {:arities  #{0 1}
-   :variadic true})</div></div><div class="code"><div hljs="hljs" language="clojure" no-escape="no-escape">&quot;works on named functions and Vars&quot;
-    
-    (defn- fun
-([])
-([a])
-([a b])
-([a b &amp; c]))
-    
-    (argc fun)
-    =&gt; (contains
-  {:arities  #{0 1 2 3}
-   :variadic true})
-    
-    (argc #'fun)
-    =&gt; (contains
-  {:arities  #{0 1 2 3}
-   :variadic true})</div></div><div class="code"><div hljs="hljs" language="clojure" no-escape="no-escape">&quot;works on macros&quot;
-    
-    (defmacro mak
-([])
-([a])
-([a b])
-([a b &amp; c]))
-    
-    (argc #'mak)
-    =&gt; (contains
-  {:arities  #{0 1 2 3}
-   :macro    true
-   :variadic true})</div></div><div class="code"><div hljs="hljs" language="clojure" no-escape="no-escape">&quot;returns nil if the given argument is not a function&quot;
-    
-    (def notfun)
-    
-    (argc   1)    =&gt; nil
-    (argc nil)    =&gt; nil
-    (argc &quot;a&quot;)    =&gt; nil
-    (argc notfun) =&gt; nil
-    (argc String) =&gt; nil</div></div></section></section>
+      <section class="chapter" id="introduction"><h2 class="chapter">1  &nbsp;&nbsp; Introduction</h2><div class="group"><div class="paragraph"><p><code>futils</code> is a library that provides a set of forms that add some abstractions for managing functions in Clojure.</p><p>Currently implemented macros and functions are:</p><ul><li><a href='#argc'><code>argc</code></a> – counts arguments a function takes (for all arities),</li><li><a href='#relax'><code>relax</code></a> – wraps a function in a way that it accepts any number of  arguments,</li><li><a href='#args-relax'><code>args-relax</code></a> – like <code>relax</code> but it requires to explicitly  describe the accepted arities,</li><li><a href='#frepeat'><code>frepeat</code></a> – creates a sequence of returned values using a function  with named parameters,</li><li><a href='#mapply'><code>mapply</code></a> – works like apply but for named arguments.</li></ul></div></div></section><section class="chapter" id="installation"><h2 class="chapter">2  &nbsp;&nbsp; Installation</h2><div class="group"><div class="paragraph"><p>Add to <code>project.clj</code> dependencies: </p><p><code>&#91;pl.randomseed/futils </code>"<code>0.5.0</code>"<code>&#93;</code></p><p>Then require it in your program:</p><p><code>&#40;require 'futils.core :as futils&#41;</code></p><p>or:</p><p><code>&#40;ns your-namespace</code> <code>  &#40;:require &#91;futils.core :as futils&#93;&#41;&#41;</code></p></div></div></section><section class="chapter" id="usage"><h2 class="chapter">3  &nbsp;&nbsp; Usage</h2><section class="section" id="argc"><h3 class="section">3.1  &nbsp;&nbsp; argc</h3><div class="code"><a name="argc-synopsis"></a><div hljs="hljs" language="clojure" no-escape="no-escape">(futils.core/argc f &amp; options)</div></div><div class="paragraph"><p>Determines the number of arguments that the given function takes and returns a map containing these keys:   </p><ul><li><code>:arities</code>  – a sorted set of argument counts for all arities,</li><li><code>:engine</code>:<ul><li><code>:clj</code> – if metadata were used to determine arities – DEPRECATED);</li><li><code>:jvm</code> – if Java reflection methods were used to determine arities),</li></ul></li><li><code>:macro</code>    – a flag informing whether the given object is a macro,</li><li><code>:variadic</code> – a flag informing whether the widest arity is variadic.</li></ul><p>Variadic parameter is counted as one of the possible arguments.   </p><p>The macro flag (<code>:macro</code>) is only present when macro was detected.   </p><p>If the given argument cannot be used to obtain a Var bound to a functon or a function object then it returns <code>nil</code>.</p></div><div class="code"><a name="argc-usage"></a><h5>e.3.1  &nbsp;-&nbsp; Using <code>argc</code> on anonymous functions</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(argc (fn ([x y]) ([])))
+=&gt; {:arities  #{0 2}
+    :engine   :jvm
+    :variadic false}
+  
+(argc (fn [a b &amp; c]))
+=&gt; {:arities  #{3}
+    :engine   :jvm
+    :variadic true}</div></div><div class="code"><a name="argc-usage-named"></a><h5>e.3.2  &nbsp;-&nbsp; Using <code>argc</code> on named functions</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defn fun ([]) ([a]) ([a b]) ([a b &amp; c]))
+  
+(argc fun)
+=&gt; {:arities  #{0 1 2 3}
+    :engine   :jvm
+    :variadic true}</div></div><div class="code"><a name="argc-usage-macro"></a><h5>e.3.3  &nbsp;-&nbsp; Using <code>argc</code> on macros</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defmacro mak ([]) ([a]) ([a b]) ([a b &amp; c]))
+  
+(argc #'mak)
+=&gt; {:arities  #{0 1 2 3}
+    :engine   :jvm
+    :macro    true
+    :variadic true}</div></div><div class="code"><a name="argc-usage-macro-2"></a><h5>e.3.4  &nbsp;-&nbsp; Using <code>argc</code> on macros (by symbols)</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defmacro mak ([]) ([a]))
+  
+(argc mak)
+=&gt; {:arities  #{0 2}
+    :engine   :jvm
+    :macro    true
+    :variadic true}</div></div><div class="code"><a name="argc-usage-notfun"></a><h5>e.3.5  &nbsp;-&nbsp; Handling invalid values by <code>argc</code></h5><div hljs="hljs" language="clojure" no-escape="no-escape">(def notfun)
+  
+(argc   1)    =&gt; nil
+(argc nil)    =&gt; nil
+(argc &quot;a&quot;)    =&gt; nil
+(argc notfun) =&gt; nil
+(argc String) =&gt; nil</div></div></section><section class="section" id="relax"><h3 class="section">3.2  &nbsp;&nbsp; relax</h3><div class="code"><a name="relax-synopsis"></a><div hljs="hljs" language="clojure" no-escape="no-escape">(futils.core/relax f &amp; options)</div></div><div class="paragraph"><p>Returns a variadic function object that calls the given function <code>f</code>, adjusting the number of passed arguments to a nearest arity. It cuts argument list or pads it with <code>nil</code> values if necessary.</p><p>The arities will be obtained from metadata (if the given object is a symbol bound to a <code>Var</code> or a <code>Var</code> object itself) or using JVM reflection calls to anonymous class representing a function object (in case of function object).</p><p>To determine the number of arguments the nearest arity is picked up by matching a number of passed arguments to number of arguments for each arity. If there is no exact match then the next arity capable of taking all arguments is selected.</p><p>If the expected number of arguments is lower than a number of arguments actually passed to a wrapper call, the exceeding ones will be ignored.</p><p>If the declared number of arguments that the original function expects is higher than a number of arguments really passed then <code>nil</code> values will be placed as extra arguments.</p><p>When a variadic function is detected and its variadic arity is the closest to a number of arguments passed then all of them will be used during a function call (no argument will be ignored).   </p><p>It takes optional named arguments:   </p><ul><li><code>:pad-fn</code> – a function that generates values for padding,</li><li><code>:pad-val</code> – a value to use for padding instead of <code>nil</code>,</li><li><code>:verbose</code> – a switch (defaults to false) that if set to true causes wrapper to                 return a map containing additional information.</li></ul></div><div class="code"><a name="relax-usage"></a><h5>e.3.6  &nbsp;-&nbsp; Using <code>relax</code></h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defn fun
+  ([a b]   (list a b))
+  ([a b c] (list a b c)))
+  
+(def relaxed (relax fun))
+  
+(relaxed)         =&gt; '(nil nil)
+(relaxed 1)       =&gt; '(1 nil)
+(relaxed 1 2)     =&gt; '(1 2)
+(relaxed 1 2 3)   =&gt; '(1 2 3)
+(relaxed 1 2 3 4) =&gt; '(1 2 3)
+  
+(def relaxed (relax #'fun))
+  
+(relaxed)         =&gt; '(nil nil)
+(relaxed 1 2 3 4) =&gt; '(1 2 3)</div></div><div class="code"><a name="relax-usage-variadic"></a><h5>e.3.7  &nbsp;-&nbsp; Handling variadic arguments by <code>relax</code></h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defn fun
+  ([a] (list a))
+  ([a b &amp; more] (list* a b more)))
+  
+(def relaxed (relax fun))
+  
+(relaxed)         =&gt; '(nil)     ; matched arity: [a]
+(relaxed 1)       =&gt; '(1)       ; matched arity: [a]
+(relaxed 1 2)     =&gt; '(1 2)     ; matched arity: [a b &amp; more]
+(relaxed 1 2 3)   =&gt; '(1 2 3)   ; matched arity: [a b &amp; more]
+(relaxed 1 2 3 4) =&gt; '(1 2 3 4) ; matched arity: [a b &amp; more]
+  
+(defn fun2 [&amp; more] more)
+(def relaxed (relax fun2))
+  
+(relaxed)         =&gt; nil
+(relaxed 1)       =&gt; '(1)
+(relaxed 1 2)     =&gt; '(1 2)
+(relaxed 1 2 3)   =&gt; '(1 2 3)
+(relaxed 1 2 3 4) =&gt; '(1 2 3 4)</div></div><div class="code"><a name="relax-usage-anonymous"></a><h5>e.3.8  &nbsp;-&nbsp; Using <code>relax</code> on anonymous functions</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(def relaxed
+  (relax (fn
+           ([a]     (list a))
+           ([a b c] (list a b c)))))
+  
+(relaxed)         =&gt; '(nil)      ; matched arity: [a]
+(relaxed 1)       =&gt; '(1)        ; matched arity: [a]
+(relaxed 1 2)     =&gt; '(1 2 nil)  ; matched arity: [a b c]
+(relaxed 1 2 3)   =&gt; '(1 2 3)    ; matched arity: [a b c]
+(relaxed 1 2 3 4) =&gt; '(1 2 3)    ; matched arity: [a b c]</div></div><div class="code"><a name="relax-usage-padding-val"></a><h5>e.3.9  &nbsp;-&nbsp; Custom padding value</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(def relaxed (relax #(list %1 %2 %3) :pad-val :nic))
+  
+(relaxed)           =&gt; '(:nic :nic :nic)
+(relaxed 1)         =&gt; '(1 :nic :nic)
+(relaxed 1 2)       =&gt; '(1 2 :nic)
+(relaxed 1 2 3)     =&gt; '(1 2 3)
+(relaxed 1 2 3 4)   =&gt; '(1 2 3)</div></div><div class="code"><a name="relax-usage-padding-fn"></a><h5>e.3.10  &nbsp;-&nbsp; Custom padding function</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defn padder
+  [&amp; {:keys [previous]}]
+  (if (nil? previous) 0 (inc previous)))
+  
+(def relaxed (relax #(list %1 %2 %3) :pad-fn padder))
+  
+(relaxed)         =&gt; '(0 1 2)
+(relaxed 1)       =&gt; '(1 2 3)
+(relaxed 5)       =&gt; '(5 6 7)
+(relaxed 1 8)     =&gt; '(1 8 9)</div></div><div class="code"><a name="relax-usage-verbose"></a><h5>e.3.11  &nbsp;-&nbsp; Verbose mode</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defn fun
+  ([a] (list a))
+  ([a b &amp; more] (list* a b more)))
+  
+(def relaxed (relax fun :verbose true))
+  
+(relaxed)
+=&gt; {:argc-cutted   0
+    :argc-padded   1
+    :argc-received 0
+    :argc-sent     1
+    :args-received ()
+    :args-sent     '(nil)
+    :arities       #{1 3}
+    :arity-matched 1
+    :engine        :jvm
+    :result        '(nil)
+    :variadic      true
+    :variadic-used false
+    :verbose       true} 
+  
+(relaxed 1 2 3)
+=&gt; {:argc-cutted   0
+    :argc-padded   0
+    :argc-received 3
+    :argc-sent     3
+    :args-received '(1 2 3)
+    :args-sent     '(1 2 3)
+    :arities       #{1 3}
+    :arity-matched 3
+    :engine        :jvm
+    :result        '(1 2 3)
+    :variadic      true
+    :variadic-used true
+    :verbose       true}</div></div><div class="code"><a name="relax-usage-notfun"></a><h5>e.3.12  &nbsp;-&nbsp; Handling invalid values</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(def notfun)
+  
+(relax   1)    =&gt; (throws java.lang.AssertionError)
+(relax nil)    =&gt; (throws java.lang.AssertionError)
+(relax &quot;a&quot;)    =&gt; (throws java.lang.AssertionError)
+(relax notfun) =&gt; (throws java.lang.AssertionError)
+(relax String) =&gt; (throws java.lang.AssertionError)</div></div></section><section class="section" id="frepeat"><h3 class="section">3.3  &nbsp;&nbsp; frepeat</h3><div class="code"><a name="frepeat-synopsis"></a><div hljs="hljs" language="clojure" no-escape="no-escape">(futils.core/frepeat n? f kvs?)</div></div><div class="paragraph"><p>Returns a lazy sequence of results produced by the given function <code>f</code> which should accept named arguments.</p><p>If the first argument passed to frepeat is a number (<code>n</code>) and the second is a function (<code>f</code>) it will limit the iterations to the specified count.</p><p>If the numeric argument is missing and only a function object is given the frepeat will produce infinite sequence of calls.</p><p>The last, optional argument should be a map (<code>kvs</code>) that initializes named arguments that will be passed to the first and subsequent calls to <code>f</code>.</p><p>Additionally each call to <code>f</code> will pass the following keyword arguments:</p><ul><li><code>:iteration</code> – a number of current iteration (starting from 1),</li><li><code>:previous</code> – a result of the previous call to <code>f</code>.</li></ul><p>The first call to <code>f</code> will pass the following:</p><ul><li><code>:iteration</code> – 1,</li><li><code>:iterations</code> – a total number of iterations (if nr was given).</li></ul><p>It is possible to set the initial value of <code>:previous</code> if there is a need for that (by passing it to <code>frepeat</code>) or shadow the :iterations after the first call (by setting it in the passed function <code>f</code>).</p><p>Values associated with <code>:iteration</code> and <code>:previous</code> keys will always change during each call.</p></div></section></section>
     </div>
 </div><!--end of .container-->
 
