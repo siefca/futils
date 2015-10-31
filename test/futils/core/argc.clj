@@ -2,7 +2,7 @@
   (:use midje.sweet)
   (:require [futils.core :refer [argc]]))
 
-[[{:tag "argc" :title "Using <code>argc</code> on anonymous functions"}]]
+[[{:tag "argc-usage" :title "Using <code>argc</code> on anonymous functions"}]]
 ^{:refer futils.core/argc :added "0.1"}
 (fact
   
@@ -13,10 +13,10 @@
   
   (argc (fn [a b & c]))
   => {:arities  #{3}
-      :engine   jvm
+      :engine   :jvm
       :variadic true})
 
-[[{:tag "argc-named" :title "Using <code>argc</code> on named functions"}]]
+[[{:tag "argc-usage-named" :title "Using <code>argc</code> on named functions"}]]
 ^{:refer futils.core/argc :added "0.1"}
 (fact
   
@@ -27,7 +27,7 @@
       :engine   :jvm
       :variadic true})
   
-[[{:tag "argc-macro" :title "Using <code>argc</code> on macros"}]]
+[[{:tag "argc-usage-macro" :title "Using <code>argc</code> on macros"}]]
 ^{:refer futils.core/argc :added "0.1"}
 (fact
   
@@ -39,7 +39,7 @@
       :macro    true
       :variadic true})
 
-[[{:tag "argc-macro-2" :title "Using <code>argc</code> on macros (by symbols)"}]]
+[[{:tag "argc-usage-macro-2" :title "Using <code>argc</code> on macros (by symbols)"}]]
 ^{:refer futils.core/argc :added "0.1"}
 (comment
   (defmacro mak ([]) ([a]))
@@ -50,7 +50,7 @@
       :macro    true
       :variadic true})
 
-[[{:tag "argc-notfun" :title "Handling invalid values by <code>argc</code>"}]]
+[[{:tag "argc-usage-notfun" :title "Handling invalid values by <code>argc</code>"}]]
 ^{:refer futils.core/argc :added "0.1"}
 (fact
   (def notfun)
