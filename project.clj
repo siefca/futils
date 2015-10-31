@@ -8,9 +8,7 @@
   :dependencies [[org.clojure/clojure "1.7.0"]]
   
   :profiles {:dev {:dependencies [[midje "1.8.1"]
-                                  [helpshift/hydrox "0.1.2"]
-                                  [im.chit/hara.class "2.2.7"]
-                                  [im.chit/hara.reflect "2.2.7"]
+                                  [helpshift/hydrox "0.1.3"]
                                   [im.chit/vinyasa.inject "0.3.4"]]
                    :plugins [[lein-midje "3.2"]]
 
@@ -18,7 +16,7 @@
                    [(require '[vinyasa.inject :as inject])
                     (inject/in [hydrox.core dive surface generate-docs
                                 import-docstring purge-docstring])]}
-             } 
+             }
   
   :documentation {:site "futils"
                   :description "Function Utilities Library"
