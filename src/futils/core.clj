@@ -229,8 +229,8 @@
 (defn- frepeat-core
   {:added "0.2"
    :tag clojure.lang.ISeq}
-  [^long nr
-   ^clojure.lang.Fn f
+  [^long                            nr
+   ^clojure.lang.Fn                  f
    ^clojure.lang.IPersistentMap params]
   (lazy-seq
    (let [par (assoc params :iteration nr)
@@ -278,7 +278,9 @@
    (if (number? n-f)
      (frepeat (long n-f) f-m nil)
      (frepeat-core 1 n-f f-m)))
-  ([^long n ^clojure.lang.Fn f ^clojure.lang.IPersistentMap kvs]
+  ([^long                          n
+    ^clojure.lang.Fn               f
+    ^clojure.lang.IPersistentMap kvs]
    (take n (frepeat-core 1 f (assoc kvs :iterations n)))))
 
 (defmacro relax
@@ -317,9 +319,9 @@
   {:added "0.1"
    :tag clojure.lang.Fn}
   [f & {:as options}]
-  `(let [f# (ensure-fn ~f)
+  `(let [f# (require-fn ~f)
          opts# (into ~options (argc f#))]
-     (mapply args-relax f opts#)))
+     (mapply args-relax f# opts#)))
 
 (defn args-relax
   "Returns a variadic function object that calls the given function, adjusting
@@ -387,38 +389,41 @@
   {:added "0.1"
    :tag clojure.lang.Fn}
   [^clojure.lang.Fn f
-   & {:keys [^long arities
-             ^clojure.lang.Fn pad-fn
-             ^Boolean variadic
-             ^Boolean verbose
-             pad-val]
+   & {:keys [^clojure.lang.IPersistentSet arities
+             ^clojure.lang.Fn              pad-fn
+             ^Boolean                    variadic
+             ^Boolean                     verbose
+                                          pad-val]
       :as uber-args
       :or {verbose false, variadic false}}]
   {:pre [(ifn? f) (not (empty? arities))]}
   (fn [& args]
-    (let [carg (count args)
-          expe (nearest-right arities carg)
-          vari (and variadic (= expe (last arities)))
-          padn (- expe carg)
+    (let [arcv (or args (list))
+          carg (count arcv)
+          near (nearest-right arities carg)
+          vari (and variadic (= near (last arities)))
+          expe (if vari (dec near) near)
           tken (if vari (max expe carg) expe)
+          padn (- expe carg)
           pads (if (nil? pad-fn)
                  (repeat  padn pad-val)
                  (frepeat padn pad-fn
-                          {:args-received  args
-                           :arity-matched  expe
-                           :previous (last args)}))
-          adja (take tken (concat args pads))
+                          {:args-received arcv
+                           :arity-matched near
+                           :variadic-used vari
+                           :previous (last arcv)}))
+          adja (take tken (concat arcv pads))
           resu (apply f adja)]
       (if verbose
         (assoc uber-args
-               :args-received args
+               :args-received arcv
                :argc-received carg
                :args-sent     adja
                :argc-sent     tken
                :result        resu
-               :arity-matched expe
+               :arity-matched near
                :variadic-used vari
                :argc-padded   (not-negative padn)
-               :argc-cutted   (not-negative (- padn)))
+               :argc-cutted   (if vari 0 (not-negative (- padn))))
           resu))))
 
