@@ -2,74 +2,62 @@
   (:use midje.sweet)
   (:require [futils.core :refer [argc]]))
 
+[[{:tag "argc" :title "Using <code>argc</code> on anonymous functions"}]]
 ^{:refer futils.core/argc :added "0.1"}
-(facts "about argc"
+(fact
   
-  (fact "counts positional arguments"
-    
-    (argc (fn [x]))
-    => (contains
-        {:arities  #{1}
-         :engine   keyword?
-         :f        ifn?
-         :variadic false})
-    
-    (argc (fn ([x y])([z])))
-    => (contains
-        {:arities  #{1 2}
-         :variadic false}))
+  (argc (fn ([x y]) ([])))
+  => {:arities  #{0 2}
+      :engine   :jvm
+      :variadic false}
   
-  (fact "counts variadic arguments"
-    
-    (argc (fn [a & b]))
-    => (contains
-        {:arities  #{2}
-         :variadic true})
-    
-    (argc (fn ([])([& a])))
-    => (contains
-        {:arities  #{0 1}
-         :variadic true}))
+  (argc (fn [a b & c]))
+  => {:arities  #{3}
+      :engine   jvm
+      :variadic true})
+
+[[{:tag "argc-named" :title "Using <code>argc</code> on named functions"}]]
+^{:refer futils.core/argc :added "0.1"}
+(fact
   
-  (fact "works on named functions and Vars"
-    
-    (defn- fun
-      ([])
-      ([a])
-      ([a b])
-      ([a b & c]))
-    
-    (argc fun)
-    => (contains
-        {:arities  #{0 1 2 3}
-         :variadic true})
-    
-    (argc #'fun)
-    => (contains
-        {:arities  #{0 1 2 3}
-         :variadic true}))
+  (defn fun ([]) ([a]) ([a b]) ([a b & c]))
   
-  (fact "works on macros"
-    
-    (defmacro mak
-      ([])
-      ([a])
-      ([a b])
-      ([a b & c]))
-    
-    (argc #'mak)
-    => (contains
-        {:arities  #{0 1 2 3}
-         :macro    true
-         :variadic true}))
+  (argc fun)
+  => {:arities  #{0 1 2 3}
+      :engine   :jvm
+      :variadic true})
   
-  (fact "returns nil if the given argument is not a function"
-    
-    (def notfun)
-    
-    (argc   1)    => nil
-    (argc nil)    => nil
-    (argc "a")    => nil
-    (argc notfun) => nil
-    (argc String) => nil))
+[[{:tag "argc-macro" :title "Using <code>argc</code> on macros"}]]
+^{:refer futils.core/argc :added "0.1"}
+(fact
+  
+  (defmacro mak ([]) ([a]) ([a b]) ([a b & c]))
+  
+  (argc #'mak)
+  => {:arities  #{0 1 2 3}
+      :engine   :jvm
+      :macro    true
+      :variadic true})
+
+[[{:tag "argc-macro-2" :title "Using <code>argc</code> on macros (by symbols)"}]]
+^{:refer futils.core/argc :added "0.1"}
+(comment
+  (defmacro mak ([]) ([a]))
+  
+  (argc mak)
+  => {:arities  #{0 2}
+      :engine   :jvm
+      :macro    true
+      :variadic true})
+
+[[{:tag "argc-notfun" :title "Handling invalid values by <code>argc</code>"}]]
+^{:refer futils.core/argc :added "0.1"}
+(fact
+  (def notfun)
+  
+  (argc   1)    => nil
+  (argc nil)    => nil
+  (argc "a")    => nil
+  (argc notfun) => nil
+  (argc String) => nil)
 
