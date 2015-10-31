@@ -160,7 +160,7 @@
             gen-fargs-seq
             to-sorted-set
             gen-fargs-map
-            (assoc :f fun :engine :clj))))
+            (assoc :engine :clj))))
 
 (defn argc-jvm
   "Uses JVM reflection calls to determine number of arguments the given function
@@ -176,7 +176,7 @@
             gen-fargs-seq
             to-sorted-set
             gen-fargs-map
-            (assoc :f fun :engine :jvm))))
+            (assoc :engine :jvm))))
 
 (defn- macroize-argc
   "Takes argc output (a map), sets :macro to true and updates :arities in a way
@@ -196,7 +196,6 @@
   :arities  – a sorted set of argument counts for all arities,
   :engine   – :clj (if metadata were used to determine arities – DEPRECATED);
               :jvm (if Java reflection methods were used to determine arities),
-  :f        – a function object,
   :macro    – a flag informing whether the given object is a macro,
   :variadic – a flag informing whether the widest arity is variadic.
   
@@ -318,8 +317,9 @@
   {:added "0.1"
    :tag clojure.lang.Fn}
   [f & {:as options}]
-  `(let [opts# (into ~options (argc ~f))]
-     (mapply args-relax (:f opts#) opts#)))
+  `(let [f# (ensure-fn ~f)
+         opts# (into ~options (argc f#))]
+     (mapply args-relax f opts#)))
 
 (defn args-relax
   "Returns a variadic function object that calls the given function, adjusting
@@ -366,7 +366,6 @@
   :arities       – a sorted set of argument counts for all arities,
   :arity-matched – an arity (as a number of arguments) that matched,
   :engine        – a method used to check arities (:clj or :jvm),
-  :f             – a function object,
   :result        – a result of calling the original function,
   :variadic      – a flag telling that the widest arity is variadic,
   :variadic-used – a flag telling that a variadic arity was used,
@@ -377,7 +376,6 @@
   
   :argc-received – a number of arguments received by the wrapper,
   :arity-matched – an arity (as a number of arguments) that matched,
-  :f             – wrapped function object,
   :iteration     – a number of current iteration (starting from 1),
   :iterations    – a total number of iterations,
   :previous      – a value of previously calculated argument (the result
@@ -408,13 +406,11 @@
                  (frepeat padn pad-fn
                           {:args-received  args
                            :arity-matched  expe
-                           :previous (last args)
-                           :f f}))
+                           :previous (last args)}))
           adja (take tken (concat args pads))
           resu (apply f adja)]
       (if verbose
         (assoc uber-args
-               :f f
                :args-received args
                :argc-received carg
                :args-sent     adja
