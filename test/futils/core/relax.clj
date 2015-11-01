@@ -81,8 +81,8 @@
 (fact
   
   (defn padder
-    [& {:keys [previous]}]
-    (if (nil? previous) 0 (inc previous)))
+    [& {:keys [previous] :or {previous -1}}]
+    (inc previous))
   
   (def relaxed (relax #(list %1 %2 %3) :pad-fn padder))
   

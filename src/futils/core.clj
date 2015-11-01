@@ -278,8 +278,8 @@
    (if (number? n-f)
      (frepeat (long n-f) f-m nil)
      (frepeat-core 1 n-f f-m)))
-  ([^long                          n
-    ^clojure.lang.Fn               f
+  ([^long n
+    ^clojure.lang.Fn f
     ^clojure.lang.IPersistentMap kvs]
    (take n (frepeat-core 1 f (assoc kvs :iterations n)))))
 
@@ -385,7 +385,13 @@
                    argument when padding function is called for the first time).
   
   Values associated with :iteration and :previous keys will change during each
-  call, rest of them will remain constant."
+  call, rest of them will remain constant.
+  
+  If there is no last argument processed at a time when f is called for the
+  first time (because no arguments were passed), the :previous key is not added
+  to a passed map. That allows to use a default value in a binding map of f or
+  to make easy checks if there would be some previous value (nil is too
+  ambiguous)."
   {:added "0.1"
    :tag clojure.lang.Fn}
   [^clojure.lang.Fn f
@@ -405,13 +411,16 @@
           expe (if vari (dec near) near)
           tken (if vari (max expe carg) expe)
           padn (- expe carg)
-          pads (if (nil? pad-fn)
-                 (repeat  padn pad-val)
-                 (frepeat padn pad-fn
-                          {:args-received arcv
-                           :arity-matched near
-                           :variadic-used vari
-                           :previous (last arcv)}))
+          pads (when (pos? padn)
+                 (if (nil? pad-fn)
+                   (repeat padn pad-val)
+                   (let [frargs {:args-received arcv
+                                 :arity-matched near
+                                 :variadic-used vari}
+                         prargs (if (zero? carg)
+                                  frargs
+                                  (assoc frargs :previous (last arcv)))]
+                     (frepeat padn pad-fn prargs))))
           adja (take tken (concat arcv pads))
           resu (apply f adja)]
       (if verbose
@@ -425,5 +434,5 @@
                :variadic-used vari
                :argc-padded   (not-negative padn)
                :argc-cutted   (if vari 0 (not-negative (- padn))))
-          resu))))
+        resu))))
 

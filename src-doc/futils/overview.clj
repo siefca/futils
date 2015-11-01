@@ -134,8 +134,8 @@ The first call to `f` will pass the following:
 *  `:iterations` – a total number of iterations (if nr was given).
 
 It is possible to set the initial value of `:previous` if there is a need for
-that (by passing it to `frepeat`) or shadow the :iterations after the first call
-(by setting it in the passed function `f`).
+that (by passing it to `frepeat`) or shadow the value assigned to `:iterations`
+after the first call (by setting it in the passed function `f`).
 
 Values associated with `:iteration` and `:previous` keys will always change
 during each call.
