@@ -36,7 +36,8 @@ Full documentation with usage examples is available on:
 
 ## Examples
 
-Examples can be found in the `examples` subdirectory of the repo.
+Examples can be found in the documentation or in test files located under
+`test/futils` subdirectory of the sources.
 
 ## License
 
