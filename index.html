@@ -98,10 +98,10 @@
     :variadic true}</div></div><div class="code"><a name="argc-usage-macro-2"></a><h5>e.3.4  &nbsp;-&nbsp; Using <code>argc</code> on macros (by symbols)</h5><div hljs="hljs" language="clojure" no-escape="no-escape">(defmacro mak ([]) ([a]))
   
 (argc mak)
-=&gt; {:arities  #{0 2}
+=&gt; {:arities  #{0 1}
     :engine   :jvm
     :macro    true
-    :variadic true}</div></div><div class="code"><a name="argc-usage-notfun"></a><h5>e.3.5  &nbsp;-&nbsp; Handling invalid values by <code>argc</code></h5><div hljs="hljs" language="clojure" no-escape="no-escape">(def notfun)
+    :variadic false}</div></div><div class="code"><a name="argc-usage-notfun"></a><h5>e.3.5  &nbsp;-&nbsp; Handling invalid values by <code>argc</code></h5><div hljs="hljs" language="clojure" no-escape="no-escape">(def notfun)
   
 (argc   1)    =&gt; nil
 (argc nil)    =&gt; nil
