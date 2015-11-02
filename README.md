@@ -1,6 +1,5 @@
 # futils – Function Utilities Library
 
-[![Clojars Project](http://clojars.org/pl.randomseed/futils/latest-version.svg)](http://clojars.org/pl.randomseed/futils)
 [![Build Status](https://travis-ci.org/siefca/futils.png?branch=master)](https://travis-ci.org/siefca/futils)
 
 This library defines forms that abstract some common operations on functions,
