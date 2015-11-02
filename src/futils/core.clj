@@ -218,7 +218,7 @@
 
 (defn mapply
   "Like apply but works on named arguments. Takes function f and a list of
-  arguments to be passed were the last argument should be a map that will be
+  arguments to be passed, were the last argument should be a map that will be
   decomposed and passed as named arguments.
   
   Returns the result of calling f."
@@ -229,8 +229,8 @@
 (defn- frepeat-core
   {:added "0.2"
    :tag clojure.lang.ISeq}
-  [^long                            nr
-   ^clojure.lang.Fn                  f
+  [^long nr
+   ^clojure.lang.Fn f
    ^clojure.lang.IPersistentMap params]
   (lazy-seq
    (let [par (assoc params :iteration nr)
