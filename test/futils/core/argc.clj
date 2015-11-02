@@ -45,10 +45,10 @@
   (defmacro mak ([]) ([a]))
   
   (argc mak)
-  => {:arities  #{0 2}
+  => {:arities  #{0 1}
       :engine   :jvm
       :macro    true
-      :variadic true})
+      :variadic false})
 
 [[{:tag "argc-usage-notfun" :title "Handling invalid values by <code>argc</code>"}]]
 ^{:refer futils.core/argc :added "0.1"}
