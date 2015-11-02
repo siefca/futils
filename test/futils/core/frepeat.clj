@@ -45,7 +45,7 @@
        [5 5 :something]))
 
 [[{:tag "frepeat-usage-notfun" :title "Handling invalid values by <code>frepeat</code>"}]]
-^{:refer futils.core/frepeat :added "0.1"}
+^{:refer futils.core/frepeat :added "0.2"}
 (fact
   (def notfun)
 
