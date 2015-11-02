@@ -37,6 +37,7 @@ or:
 
 [[:chapter {:title "Usage"}]]
 
+
 [[:section {:title "argc" :tag "argc"}]]
 
 [[{:tag "argc-synopsis" :title "Synopsis" :numbered false}]]
@@ -62,7 +63,10 @@ If the given argument cannot be used to obtain a Var bound to a functon or
 a function object then it returns `nil`.
 "
 
+[[:subsection {:title "Usage examples" :tag "argc-usage-ex"}]]
 [[:file {:src "test/futils/core/argc.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 [[:section {:title "relax" :tag "relax"}]]
 
@@ -93,16 +97,107 @@ arguments.
 When a variadic function is detected and its variadic arity is the closest to
 a number of arguments passed then all of them will be used during a function
 call (no argument will be ignored).
-  
+
 It takes optional named arguments:
   
 * `:pad-fn` – a function that generates values for padding,
 * `:pad-val` – a value to use for padding instead of `nil`,  
-* `:verbose` – a switch (defaults to false) that if set to true causes wrapper to
-                 return a map containing additional information.
+* `:verbose` – a switch (defaults to `false`) that if set to true causes
+               wrapper to return a map containing additional information.
+
+See [`args-relax`](#args-relax) for detailed descriptions of `:pad-fn` and
+`:verbose` options.
 "
 
+[[:subsection {:title "Usage examples" :tag "relax-usage-ex"}]]
 [[:file {:src "test/futils/core/relax.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[[:section {:title "args-relax" :tag "args-relax"}]]
+
+[[{:tag "args-relax-synopsis" :title "Synopsis" :numbered false}]]
+(comment
+  (futils.core/args-relax f & options))
+
+"
+Returns a variadic function object that calls the given function, adjusting
+the number of passed arguments to a nearest arity. It cuts argument list or pads
+it with nil values if necessary.
+  
+It takes 1 positional, obligatory argument, which should be a function (`f`) and
+two named, keyword arguments:
+
+* `:arities` – a sorted set of argument counts for all arities,
+* `:variadic` – a flag informing whether the widest arity is variadic.
+
+It also makes use of optional named arguments:
+  
+* `:pad-fn`  – a function that generates values for padding,
+* `:pad-val` – a value to use for padding instead of `nil`,  
+* `:verbose` – a switch (defaults to `false`) that if set to `true`, causes wrapper
+               to return a map containing additional information.
+
+To determine the number of arguments the nearest arity is picked up by matching
+a number of passed arguments to each number from a set (passed as `:arities`
+keyword argument). If there is no exact match then the next arity capable of
+handling all arguments is selected.
+
+If the expected number of arguments is lower than a number of arguments
+actually passed to a wrapper call, the exceeding ones will be ignored.
+
+If the declared number of arguments that the original function expects is higher
+than a number of arguments really passed then nil values will be placed as extra
+arguments.
+
+When a variadic function is detected and its variadic arity is the closest to
+a number of arguments passed then all of them will be used to call a function."
+
+[[:subsection {:title "Verbose mode" :tag "args-relax-verbose-mode"}]]
+
+" 
+If the `:verbose` flag is set the result will be a map containing the following:
+  
+* `:argc-received` – a number of arguments received by the wrapper,
+* `:argc-sent`     – a number of arguments passed to a function,
+* `:argc-cutted`   – a number of arguments ignored,
+* `:argc-padded`   – a number of arguments padded with `nil` values,
+* `:args-received` – arguments received by the wrapper,
+* `:args-sent`     – arguments passed to a function,
+* `:arities`       – a sorted set of argument counts for all arities,
+* `:arity-matched` – an arity (as a number of arguments) that matched,
+* `:engine`        – a method used to check arities (`:clj` or `:jvm`),
+* `:result`        – a result of calling the original function,
+* `:variadic`      – a flag telling that the widest arity is variadic,
+* `:variadic-used` – a flag telling that a variadic arity was used,
+* `:verbose`       – a verbosity flag (always `true` in this case)."
+
+[[:subsection {:title "Padding function" :tag "args-relax-pad-fn"}]]
+
+"
+If a padding function is given (with `:pad-fn`) it should take keyword
+arguments. During each call the following keys will be set:
+
+* `:argc-received` – a number of arguments received by the wrapper,
+* `:arity-matched` – an arity (as a number of arguments) that matched,
+* `:iteration`     – a number of current iteration (starting from 1),
+* `:iterations`    – a total number of iterations,
+* `:previous`      – a value of previously calculated argument (the result
+  of a previous call or a value of the last positional argument when padding
+  function is called for the first time).
+
+Values associated with `:iteration` and `:previous` keys will change during each
+call, the rest will remain constant.
+
+If there is no last argument processed at a time when `f` is called for the first
+time (because no arguments were passed), the :previous key is not added to
+a passed map. That allows to use a default value in a binding map of `f` or to
+make easy checks if there would be some previous value (`nil` is ambiguous)."
+
+[[:subsection {:title "Usage examples" :tag "args-relax-usage-ex"}]]
+[[:file {:src "test/futils/core/args_relax.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 [[:section {:title "frepeat" :tag "frepeat"}]]
 
@@ -131,7 +226,7 @@ Additionally each call to `f` will pass the following keyword arguments:
 The first call to `f` will pass the following:
 
 *  `:iteration` – 1,
-*  `:iterations` – a total number of iterations (if nr was given).
+*  `:iterations` – a total number of iterations (if `n` was given).
 
 It is possible to set the initial value of `:previous` if there is a need for
 that (by passing it to `frepeat`) or shadow the value assigned to `:iterations`
@@ -140,3 +235,25 @@ after the first call (by setting it in the passed function `f`).
 Values associated with `:iteration` and `:previous` keys will always change
 during each call.
 "
+
+[[:subsection {:title "Usage examples" :tag "frepeat-usage-ex"}]]
+[[:file {:src "test/futils/core/frepeat.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[[:section {:title "mapply" :tag "mapply"}]]
+
+[[{:tag "mapply-synopsis" :title "Synopsis" :numbered false}]]
+(comment
+  (futils.core/mapply f args* args-map))
+
+"
+It works like `apply` but handles named arguments. Takes function `f`, an
+optional list of arguments (`args*`) to be passed during a call to it and a map
+(`args-map`) that will be decomposed and passed as named arguments.
+
+Returns the result of calling f."
+
+[[:subsection {:title "Usage examples" :tag "mapply-usage-ex"}]]
+[[:file {:src "test/futils/core/mapply.clj"}]]
+

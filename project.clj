@@ -1,4 +1,4 @@
-(defproject pl.randomseed/futils "0.5.1"
+(defproject pl.randomseed/futils "0.5.2"
   :description "Function Utilities library"
   :url "https://randomseed.pl/software/futils"
   
@@ -34,7 +34,7 @@
                                         :article      :article}}
                   :files {"index"
                           {:input     "src-doc/futils/overview.clj"
-                           :title     "futils overview"
+                           :title     "futils"
                            :subtitle  "Function Utilities Library"}}
                   :link {:auto-tag    true
                          :auto-number true}}
