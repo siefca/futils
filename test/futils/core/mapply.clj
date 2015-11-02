@@ -2,7 +2,7 @@
   (:use midje.sweet)
   (:require [futils.core :refer [mapply]]))
 
-[[{:tag "mapply-usage" :title "Usage of the <code>mapply</code>"}]]
+[[{:tag "mapply-usage" :title "Usage of <code>mapply</code>"}]]
 ^{:refer futils.core/mapply :added "0.2"}
 (fact
   

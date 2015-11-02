@@ -2,7 +2,7 @@
   (:use midje.sweet)
   (:require [futils.core :refer [frepeat]]))
 
-[[{:tag "frepeat-usage-basic" :title "Basic usage of the <code>frepeat</code>"}]]
+[[{:tag "frepeat-usage-basic" :title "Basic usage of <code>frepeat</code>"}]]
 ^{:refer futils.core/frepeat :added "0.2"}
 (fact
   
