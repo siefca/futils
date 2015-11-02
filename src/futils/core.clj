@@ -402,7 +402,7 @@
                                           pad-val]
       :as uber-args
       :or {verbose false, variadic false}}]
-  {:pre [(ifn? f) (not (empty? arities))]}
+  {:pre [(instance? clojure.lang.Fn f) (not-empty arities)]}
   (fn [& args]
     (let [arcv (or args (list))
           carg (count arcv)
