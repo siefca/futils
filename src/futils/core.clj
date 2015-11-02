@@ -406,8 +406,9 @@
   (fn [& args]
     (let [arcv (or args (list))
           carg (count arcv)
-          near (nearest-right arities carg)
-          vari (and variadic (= near (last arities)))
+          arit (if (sorted? arities) arities (apply sorted-set arities))
+          near (nearest-right arit carg)
+          vari (and variadic (= near (last arit)))
           expe (if vari (dec near) near)
           tken (if vari (max expe carg) expe)
           padn (- expe carg)
@@ -431,6 +432,7 @@
                :argc-sent     tken
                :result        resu
                :arity-matched near
+               :arities       arit
                :variadic-used vari
                :argc-padded   (not-negative padn)
                :argc-cutted   (if vari 0 (not-negative (- padn))))
