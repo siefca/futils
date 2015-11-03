@@ -199,10 +199,10 @@
   :macro    – a flag informing whether the given object is a macro,
   :variadic – a flag informing whether the widest arity is variadic.
   
-  Variadic parameter is counted as one of the possible arguments.
+  Variadic parameter is counted as one of the possible arguments. Macro
+  implicite arguments (&env and &form) are not counted.
   
-  Macro flag (:macro) is only present when macro was detected. Otherwise it's
-  missing.
+  Macro flag (:macro) is only present when macro was detected.
   
   If the given argument cannot be used to obtain a Var bound to a functon or
   a function object then it returns nil."
@@ -404,8 +404,8 @@
       :or {verbose false, variadic false}}]
   {:pre [(instance? clojure.lang.Fn f) (not-empty arities)]}
   (fn [& args]
-    (let [arcv (or args (list))
-          carg (count arcv)
+    (let [args (list* args)
+          carg (count args)
           arit (if (sorted? arities) arities (apply sorted-set arities))
           near (nearest-right arit carg)
           vari (and variadic (= near (last arit)))
@@ -415,18 +415,18 @@
           pads (when (pos? padn)
                  (if (nil? pad-fn)
                    (repeat padn pad-val)
-                   (let [frargs {:args-received arcv
+                   (let [frargs {:args-received args
                                  :arity-matched near
                                  :variadic-used vari}
                          prargs (if (zero? carg)
                                   frargs
-                                  (assoc frargs :previous (last arcv)))]
+                                  (assoc frargs :previous (last args)))]
                      (frepeat padn pad-fn prargs))))
-          adja (take tken (concat arcv pads))
+          adja (take tken (concat args pads))
           resu (apply f adja)]
       (if verbose
         (assoc uber-args
-               :args-received arcv
+               :args-received args
                :argc-received carg
                :args-sent     adja
                :argc-sent     tken
