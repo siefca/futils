@@ -7,8 +7,10 @@
   
   (:require [futils.utils :refer :all]))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Counting function arguments.
+
 ;; used by farg-count-clj:
-;; 
 
 (def
   ^{:private true
@@ -43,7 +45,6 @@
   (juxt count obligatory-argc))
 
 ;; used by farg-count-jvm:
-;; 
 
 (def
   ^{:private true
@@ -216,6 +217,9 @@
            (#'macroize-argc r#)
            r#)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Applying named arguments.
+
 (defn mapply
   "Like apply but works on named arguments. Takes function f and a list of
   arguments to be passed, were the last argument should be a map that will be
@@ -225,6 +229,9 @@
   {:added "0.2"}
   [^clojure.lang.Fn f & args]
   (apply f (concat (butlast args) (mapcat identity (last args)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Sequences generation with named arguments.
 
 (defn- frepeat-core
   {:added "0.2"
@@ -282,6 +289,9 @@
     ^clojure.lang.Fn f
     ^clojure.lang.IPersistentMap kvs]
    (take n (frepeat-core 1 f (assoc kvs :iterations n)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Arguments relaxation.
 
 (defmacro relax
   "Returns a variadic function object that calls the given function f, adjusting
