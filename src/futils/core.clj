@@ -315,15 +315,15 @@
   :verbose  – a switch (defaults to false) that if set to true causes wrapper to
               return a map containing additional information.
   
-  See (doc args-relax) for more information about :pad-fn and :verbose options."
+  See (doc relax*) for more information about :pad-fn and :verbose options."
   {:added "0.1"
    :tag clojure.lang.Fn}
   [f & {:as options}]
   `(let [f# (require-fn ~f)
          opts# (into ~options (argc f#))]
-     (mapply args-relax f# opts#)))
+     (mapply relax* f# opts#)))
 
-(defn args-relax
+(defn relax*
   "Returns a variadic function object that calls the given function, adjusting
   the number of passed arguments to a nearest arity. It cuts argument list or
   pads it with nil values if necessary.
@@ -392,7 +392,7 @@
   to a passed map. That allows to use a default value in a binding map of f or
   to make easy checks if there would be some previous value (nil is too
   ambiguous)."
-  {:added "0.1"
+  {:added "0.6"
    :tag clojure.lang.Fn}
   [^clojure.lang.Fn f
    & {:keys [^clojure.lang.IPersistentSet arities
@@ -438,3 +438,8 @@
                :argc-cutted   (if vari 0 (not-negative (- padn))))
         resu))))
 
+(def
+  ^{:added "0.1"
+    :deprecated "0.6"
+    :doc "DEPRECATED: Use 'relax*' instead."}
+  args-relax relax*)

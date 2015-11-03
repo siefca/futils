@@ -9,13 +9,13 @@ for managing functions in Clojure.
 Currently implemented macros and functions are:
 
 * [`argc`](#argc) – counts arguments a function takes (for all arities),
-* [`relax`](#relax) – wraps a function in a way that it accepts any number of
-  arguments,
-* [`args-relax`](#args-relax) – like `relax` but it requires to explicitly
-  describe the accepted arities,
 * [`frepeat`](#frepeat) – creates a sequence of returned values using a function
   with named parameters,
-* [`mapply`](#mapply) – works like apply but for named arguments.
+* [`mapply`](#mapply) – works like apply but for named arguments,
+* [`relax`](#relax) – wraps a function in a way that it accepts any number of
+  arguments,
+* [`relax*`](#relax*) – like `relax` but it requires to explicitly
+  describe the accepted arities.
 "
 
 [[:chapter {:title "Installation"}]]
@@ -105,7 +105,7 @@ It takes optional named arguments:
 * `:verbose` – a switch (defaults to `false`) that if set to true causes
                wrapper to return a map containing additional information.
 
-See [`args-relax`](#args-relax) for detailed descriptions of `:pad-fn` and
+See [`relax*`](#relax*) for detailed descriptions of `:pad-fn` and
 `:verbose` options.
 "
 
@@ -114,11 +114,11 @@ See [`args-relax`](#args-relax) for detailed descriptions of `:pad-fn` and
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-[[:section {:title "args-relax" :tag "args-relax"}]]
+[[:section {:title "relax*" :tag "relax*"}]]
 
-[[{:tag "args-relax-synopsis" :title "Synopsis" :numbered false}]]
+[[{:tag "relax*-synopsis" :title "Synopsis" :numbered false}]]
 (comment
-  (futils.core/args-relax f & options))
+  (futils.core/relax* f & options))
 
 "
 Returns a variadic function object that calls the given function, adjusting
@@ -153,7 +153,7 @@ arguments.
 When a variadic function is detected and its variadic arity is the closest to
 a number of arguments passed then all of them will be used to call a function."
 
-[[:subsection {:title "Verbose mode" :tag "args-relax-verbose-mode"}]]
+[[:subsection {:title "Verbose mode" :tag "relax*-verbose-mode"}]]
 
 " 
 If the `:verbose` flag is set the result will be a map containing the following:
@@ -172,7 +172,7 @@ If the `:verbose` flag is set the result will be a map containing the following:
 * `:variadic-used` – a flag telling that a variadic arity was used,
 * `:verbose`       – a verbosity flag (always `true` in this case)."
 
-[[:subsection {:title "Padding function" :tag "args-relax-pad-fn"}]]
+[[:subsection {:title "Padding function" :tag "relax*-pad-fn"}]]
 
 "
 If a padding function is given (with `:pad-fn`) it should take keyword
@@ -194,8 +194,8 @@ time (because no arguments were passed), the :previous key is not added to
 a passed map. That allows to use a default value in a binding map of `f` or to
 make easy checks if there would be some previous value (`nil` is ambiguous)."
 
-[[:subsection {:title "Usage examples" :tag "args-relax-usage-ex"}]]
-[[:file {:src "test/futils/core/args_relax.clj"}]]
+[[:subsection {:title "Usage examples" :tag "relax*-usage-ex"}]]
+[[:file {:src "test/futils/core/relax_st.clj"}]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
