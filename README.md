@@ -4,15 +4,15 @@
 
 This library defines forms that abstract some common operations on functions,
 like counting their arguments, creating wrappers, passing proper number of
-arguments and so on.
+arguments, transforming positional-based arities into named ones and so on.
 
 ## Installation
 
-The current release is 0.5.2. To use futils in your project, add the following
+The current release is 0.6.0. To use futils in your project, add the following
 to the `dependencies` section of `project.clj`:
 
 ```
-[pl.randomseed/futils "0.5.2"]
+[pl.randomseed/futils "0.6.0"]
 ```
 
 ## Components
@@ -22,8 +22,10 @@ Currently prvided macros and functions are:
 * [`argc`][argc] – counts arguments a function takes (for all arities),
 * [`relax`][relax] – wraps a function in a way that it accepts any number of
   arguments,
-* [`args-relax`][args-relax] – like `relax` but it requires to explicitly
+* [`relax*`][relax*] – like `relax` but it requires to explicitly
   describe the accepted arities,
+* [`nameize`][nameize] – transforms a function so it accepts named arguments,
+* [`nameize*`][nameize*] – like `nameize` but requires symbols to be quoted,
 * [`frepeat`][frepeat] – creates a sequence of returned values using a function
   with named parameters,
 * [`mapply`][mapply] – works like apply but for named arguments.
@@ -61,7 +63,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [LICENSE]:    https://github.com/siefca/futils/blob/master/LICENSE
 [argc]:       https://randomseed.pl/software/futils/#argc
 [relax]:      https://randomseed.pl/software/futils/#relax
-[args-relax]: https://randomseed.pl/software/futils/#args-relax
+[relax*]:     https://randomseed.pl/software/futils/#relax*
+[nameize]:    https://randomseed.pl/software/futils/#nameize
+[nameize*]:   https://randomseed.pl/software/futils/#nameize*
 [frepeat]:    https://randomseed.pl/software/futils/#frepeat
 [mapply]:     https://randomseed.pl/software/futils/#mapply
 

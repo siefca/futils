@@ -15,14 +15,6 @@
 (def
   ^{:private true
     :added "0.1"
-    :tag Boolean
-    :arglists '([^Character c])}
-  not-ampersand?
-  (partial not= '&))
-
-(def
-  ^{:private true
-    :added "0.1"
     :tag clojure.lang.ISeq
     :arglists '([^clojure.lang.ISeq coll])}
   obligatory-args
@@ -72,7 +64,6 @@
   (partial filter (comp is-function? method-name)))
 
 ;; used by farg-count-jvm and farg-count-clj:
-;;
 
 (def
   ^{:private true
@@ -414,7 +405,7 @@
       :or {verbose false, variadic false}}]
   {:pre [(instance? clojure.lang.Fn f) (not-empty arities)]}
   (fn [& args]
-    (let [args (list* args)
+    (let [args (or args ())
           carg (count args)
           arit (if (sorted? arities) arities (apply sorted-set arities))
           near (nearest-right arit carg)
@@ -444,8 +435,8 @@
                :arity-matched near
                :arities       arit
                :variadic-used vari
-               :argc-padded   (not-negative padn)
-               :argc-cutted   (if vari 0 (not-negative (- padn))))
+               :argc-padded   (non-negative padn)
+               :argc-cutted   (if vari 0 (non-negative (- padn))))
         resu))))
 
 (def
@@ -453,3 +444,117 @@
     :deprecated "0.6"
     :doc "DEPRECATED: Use 'relax*' instead."}
   args-relax relax*)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Nameization.
+
+(def
+  ^{:added "0.6"
+    :private true}
+  special-plus
+  (into {'&rest true 'nil true} special-symbols))
+
+(defn- validate-argmap
+  {:added "0.6"
+   :tag Boolean}
+  [^clojure.lang.IPersistentMap m]
+  (if-some [e (some (partial find special-plus) (keys m))]
+    (throw (IllegalArgumentException. (str "Key " (key e) " is reserved")))
+    true))
+
+(defn- throw-missing-arg
+  {:added "0.6"
+   :tag nil}
+  [k]
+  (throw (IllegalArgumentException. (str "No required key present: " k))))
+
+(defn- keywordize-syms
+  "Transforms all elements of linear or associative collection from symbols to
+  keywords (except &rest)."
+  {:added "0.6"
+   :arglists '([^clojure.lang.IPersistentVector v]
+               [^clojure.lang.IPersistentMap m]
+               [^clojure.lang.ISeq coll])}
+  [coll]
+  (let [f #(if (symbol? %) (if (= '&rest %) ''&rest (keyword %)) %)]
+    (if (map? coll)
+      (reduce-kv #(assoc %1 (f %2) %3) (empty coll) coll)
+      (map f coll))))
+
+(defn nameize*
+  "Creates a wrapper that passes named arguments as positional arguments. Takes
+  a funtion object (f), a vector containing expected names of
+  arguments (exp-args) expressed as keywords, symbols, strings or whatever suits
+  you, and a map of default values for named arguments (defaults).
+  
+  The order of names in a vector has meaning. Each given name will become a key
+  of named argument which value will be passed to the given function on the same
+  position as its position in the vector.
+  
+  If the &rest special symbol is placed in exp-args vector then the passed
+  value that corresponds to its position will be a map containing all named
+  arguments that weren't handled. If there are none, nil value is passed.
+  
+  Function returns a function object."
+  {:added "0.6"
+   :tag clojure.lang.Fn}
+  [^clojure.lang.Fn                     f
+   ^clojure.lang.ISeq            exp-args
+   ^clojure.lang.IPersistentMap  defaults]
+  {:pre [(instance? clojure.lang.Fn f)
+         (validate-argmap defaults)]}
+  (if (some #(= '&rest %) exp-args)
+    (fn [& {:as args}]
+      (validate-argmap args)
+      (let [args   (into defaults args)
+            topass (select-keys args exp-args)
+            torest (apply dissoc args (keys topass))]
+        (apply f
+               (map #(if-some [ent (find args %)]
+                       (val ent) (if (= '&rest %)
+                                   (not-empty torest)
+                                   (throw-missing-arg %)))
+                    exp-args))))
+    (fn [& {:as args}]
+      (validate-argmap args)
+      (let [args (into defaults args)]
+        (apply f
+               (map #(if-some [ent (find args %)]
+                       (val ent) (throw-missing-arg %))
+                    exp-args))))))
+
+(defmacro nameize
+  "Creates a wrapper that passes named arguments as positional arguments. Takes
+  a funtion object (f), a vector S-expression containing names of expected
+  arguments (exp-args) expressed as keywords, symbols, strings or whatever suits
+  you, and an optional map S-expression of default values for named
+  arguments (defaults).
+  
+  The order of names in a vector has meaning. Each given name will become a key
+  of named argument which value will be passed to the given function on the same
+  position as in the vector.
+  
+  If unquoted symbol is given in a vector or in a map, it will be transformed to
+  a keyword of the same name. Use quoted symbols if you want to use symbols as
+  keys of named arguments.
+  
+  If the &rest special symbol is placed in a vector then the passed value that
+  corresponds to its position will be a map containing all named arguments that
+  weren't handled. If there are none, nil value is passed.
+  
+  The result is a function object."
+  {:added "0.6"}
+  ([f exp-args] `(nameize ~f ~exp-args {}))
+  ([f exp-args defaults]
+   (if (vector? exp-args)
+     nil
+     (throw (IllegalArgumentException.
+             "Second argument to nameize must be a vector")))
+   (if (map? defaults)
+     nil
+     (throw (IllegalArgumentException.
+             "Last argument to nameize must be a map")))
+   (let [m (cons 'list (#'keywordize-syms exp-args))
+         d (#'keywordize-syms defaults)]
+     `(nameize* ~f ~m ~d))))
+

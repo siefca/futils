@@ -11,7 +11,9 @@ Currently implemented macros and functions are:
 * [`argc`](#argc) – counts arguments a function takes (for all arities),
 * [`frepeat`](#frepeat) – creates a sequence of returned values using a function
   with named parameters,
-* [`mapply`](#mapply) – works like apply but for named arguments,
+* [`mapply`](#mapply) – works like apply but with named arguments,
+* [`nameize`](#nameize) – transforms a function so it accepts named arguments,
+* [`nameize*`][(#nameize*) – like `nameize` but it requires symbols to be quoted,
 * [`relax`](#relax) – wraps a function in a way that it accepts any number of
   arguments,
 * [`relax*`](#relax*) – like `relax` but it requires to explicitly
@@ -111,6 +113,70 @@ See [`relax*`](#relax*) for detailed descriptions of `:pad-fn` and
 
 [[:subsection {:title "Usage examples" :tag "relax-usage-ex"}]]
 [[:file {:src "test/futils/core/relax.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[[:section {:title "nameize" :tag "nameize"}]]
+
+[[{:tag "nameize-synopsis" :title "Synopsis" :numbered false}]]
+(comment
+  (futils.core/nameize f [names] {defaults}?))
+
+"
+Creates a wrapper that passes named arguments as positional arguments. Takes
+a funtion object (`f`), a vector S-expression containing names of expected
+arguments (`exp-args`) expressed as keywords, symbols, strings or whatever suits
+you, and an optional map S-expression of default values for named
+arguments (`defaults`).
+
+The order of names in a vector has meaning. Each given name will become a key of
+named argument which value will be passed to the given function on the same
+position as in the vector.
+
+If unquoted symbol is given in a vector or in a map, it will be transformed to
+a keyword of the same name. Use quoted symbols if you want to use symbols as
+keys of named arguments.
+
+If the `&rest` special symbol is placed in a vector then the passed value that
+corresponds to its position will be a map containing all named arguments that
+weren't handled. If there are none, `nil` value is passed.
+
+The result is a function object."
+
+[[:subsection {:title "Usage examples" :tag "nameize-usage-ex"}]]
+[[:file {:src "test/futils/core/nameize.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[[:section {:title "nameize*" :tag "nameize*"}]]
+
+[[{:tag "nameize*-synopsis" :title "Synopsis" :numbered false}]]
+(comment
+  (futils.core/nameize* f names defaults))
+
+"
+
+Creates a wrapper that passes named arguments as positional arguments. Takes
+a funtion object (`f`), a vector containing expected names of
+arguments (`exp-args`) expressed as keywords, symbols, strings or whatever suits
+you, and a map of default values for named arguments (`defaults`).
+
+The order of names in a vector has meaning. Each given name will become a key of
+named argument which value will be passed to the given function on the same
+position as in the vector.
+
+If unquoted symbol is given in a vector or in a map, it will be transformed to
+a keyword of the same name. Use quoted symbols if you want to use symbols as
+keys of named arguments.
+
+If the `&rest` special symbol is placed in `exp-args` vector then the passed
+value that corresponds to its position will be a map containing all named
+arguments that weren't handled. If there are none, nil value is passed.
+
+A function object is returned."
+
+[[:subsection {:title "Usage examples" :tag "nameize*-usage-ex"}]]
+[[:file {:src "test/futils/core/nameize_st.clj"}]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
