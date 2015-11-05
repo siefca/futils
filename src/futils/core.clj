@@ -449,8 +449,8 @@
 ;; Nameization.
 
 (def
-  ^{:added "0.6"
-    :private true}
+  ^{:private true
+    :added "0.6"}
   special-plus
   (into {'&rest true 'nil true} special-symbols))
 
@@ -483,13 +483,14 @@
 
 (defn nameize*
   "Creates a wrapper that passes named arguments as positional arguments. Takes
-  a funtion object (f), a vector containing expected names of
-  arguments (exp-args) expressed as keywords, symbols, strings or whatever suits
-  you, and a map of default values for named arguments (defaults).
+  a funtion object (f), a collection (preferably a vector) containing expected
+  names of arguments (exp-args) expressed as keywords, symbols, strings or
+  whatever suits you, and a map of default values for named
+  arguments (defaults).
   
-  The order of names in a vector has meaning. Each given name will become a key
-  of named argument which value will be passed to the given function on the same
-  position as its position in the vector.
+  The order of names in a collection is important. Each given name will become
+  a key of named argument which value will be passed to the given function on
+  the same position as its position in the vector.
   
   If the &rest special symbol is placed in exp-args vector then the passed
   value that corresponds to its position will be a map containing all named
@@ -530,7 +531,7 @@
   you, and an optional map S-expression of default values for named
   arguments (defaults).
   
-  The order of names in a vector has meaning. Each given name will become a key
+  The order of names in a vector is important. Each given name will become a key
   of named argument which value will be passed to the given function on the same
   position as in the vector.
   
@@ -557,4 +558,3 @@
    (let [m (cons 'list (#'keywordize-syms exp-args))
          d (#'keywordize-syms defaults)]
      `(nameize* ~f ~m ~d))))
-

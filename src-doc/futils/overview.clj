@@ -13,7 +13,7 @@ Currently implemented macros and functions are:
   with named parameters,
 * [`mapply`](#mapply) – works like apply but with named arguments,
 * [`nameize`](#nameize) – transforms a function so it accepts named arguments,
-* [`nameize*`][(#nameize*) – like `nameize` but it requires symbols to be quoted,
+* [`nameize*`](#nameize*) – like `nameize` but requires symbols to be quoted,
 * [`relax`](#relax) – wraps a function in a way that it accepts any number of
   arguments,
 * [`relax*`](#relax*) – like `relax` but it requires to explicitly
@@ -129,8 +129,8 @@ arguments (`exp-args`) expressed as keywords, symbols, strings or whatever suits
 you, and an optional map S-expression of default values for named
 arguments (`defaults`).
 
-The order of names in a vector has meaning. Each given name will become a key of
-named argument which value will be passed to the given function on the same
+The order of names in a vector is important. Each given name will become a key
+of named argument which value will be passed to the given function on the same
 position as in the vector.
 
 If unquoted symbol is given in a vector or in a map, it will be transformed to
@@ -155,13 +155,13 @@ The result is a function object."
   (futils.core/nameize* f names defaults))
 
 "
-
 Creates a wrapper that passes named arguments as positional arguments. Takes
-a funtion object (`f`), a vector containing expected names of
-arguments (`exp-args`) expressed as keywords, symbols, strings or whatever suits
-you, and a map of default values for named arguments (`defaults`).
+a funtion object (`f`), a collection (preferably a vector) containing expected
+names of arguments (`exp-args`) expressed as keywords, symbols, strings or
+whatever suits you, and a map of default values for named
+arguments (`defaults`).
 
-The order of names in a vector has meaning. Each given name will become a key of
+The order of names in a vector is important. Each given name will become a key of
 named argument which value will be passed to the given function on the same
 position as in the vector.
 
