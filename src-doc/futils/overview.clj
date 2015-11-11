@@ -125,7 +125,7 @@ See [`relax*`](#relax*) for detailed descriptions of `:pad-fn` and
 "
 Creates a wrapper that passes named arguments as positional arguments. Takes
 a funtion object (`f`), a vector S-expression containing names of expected
-arguments (`exp-args`) expressed as keywords, symbols, strings or whatever suits
+arguments (`names`) expressed as keywords, symbols, strings or whatever suits
 you, and an optional map S-expression of default values for named
 arguments (`defaults`).
 
@@ -157,9 +157,8 @@ The result is a function object."
 "
 Creates a wrapper that passes named arguments as positional arguments. Takes
 a funtion object (`f`), a collection (preferably a vector) containing expected
-names of arguments (`exp-args`) expressed as keywords, symbols, strings or
-whatever suits you, and a map of default values for named
-arguments (`defaults`).
+names of arguments (`names`) expressed as keywords, symbols, strings or whatever
+suits you, and a map of default values for named arguments (`defaults`).
 
 The order of names in a vector is important. Each given name will become a key of
 named argument which value will be passed to the given function on the same
