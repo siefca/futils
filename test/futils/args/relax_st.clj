@@ -1,17 +1,17 @@
-(ns futils.core.relax_st
+(ns futils.args.relax_st
   (:use midje.sweet)
-  (:require [futils.core :refer [relax* mapply argc]]))
+  (:require [futils.args :refer [relax* mapply argc]]))
 
 [[{:tag "relax*-usage" :title "Using <code>relax*</code>"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
-  
+
   (defn fun
     ([a b]   (list a b))
     ([a b c] (list a b c)))
-  
+
   (def relaxed (relax* fun :arities #{2 3}))
-  
+
   (relaxed)         => '(nil nil)
   (relaxed 1)       => '(1 nil)
   (relaxed 1 2)     => '(1 2)
@@ -19,38 +19,38 @@
   (relaxed 1 2 3 4) => '(1 2 3))
 
 [[{:tag "relax*-usage-variadic" :title "Handling variadic arguments by <code>relax*</code>"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
-  
+
   (defn fun
     ([a] (list a))
     ([a b & more] (list* a b more)))
-  
+
   (def relaxed (relax* fun
-                           :arities #{3 1}
-                           :variadic true))
-  
+                       :arities #{3 1}
+                       :variadic true))
+
   (relaxed)         => '(nil)     ; matched arity: [a]
   (relaxed 1)       => '(1)       ; matched arity: [a]
   (relaxed 1 2 3 4) => '(1 2 3 4) ; matched arity: [a b & more]
-  
+
   (defn fun2 [& more] more)
   (def relaxed (relax* fun2 :arities #{1} :variadic true))
-  
+
   (relaxed)         => nil
   (relaxed 1)       => '(1)
   (relaxed 1 2 3 4) => '(1 2 3 4))
 
 [[{:tag "relax*-usage-anonymous" :title "Using <code>relax*</code> on anonymous functions"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
-  
+
   (def relaxed
     (relax* (fn
-                  ([a]     (list a))
-                  ([a b c] (list a b c)))
-                :arities #{3 1}))
-  
+              ([a]     (list a))
+              ([a b c] (list a b c)))
+            :arities #{3 1}))
+
   (relaxed)         => '(nil)      ; matched arity: [a]
   (relaxed 1)       => '(1)        ; matched arity: [a]
   (relaxed 1 2)     => '(1 2 nil)  ; matched arity: [a b c]
@@ -58,47 +58,47 @@
   )
 
 [[{:tag "relax*-usage-padding-val" :title "Custom padding value"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
-  
+
   (def relaxed (relax* #(list %1 %2 %3)
-                           :arities #{3}
-                           :pad-val :nic))
-  
+                       :arities #{3}
+                       :pad-val :nic))
+
   (relaxed)           => '(:nic :nic :nic)
   (relaxed 1)         => '(1 :nic :nic)
   (relaxed 1 2 3 4)   => '(1 2 3))
 
 [[{:tag "relax*-usage-padding-fn" :title "Custom padding function"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
-  
+
   (defn padder
     [& {:keys [previous] :or {previous -1}}]
     (inc previous))
-  
+
   (def relaxed (relax* #(list %1 %2 %3)
-                           :arities #{3}
-                           :pad-fn padder))
-  
+                       :arities #{3}
+                       :pad-fn padder))
+
   (relaxed)         => '(0 1 2)
   (relaxed 1)       => '(1 2 3)
   (relaxed 5)       => '(5 6 7)
   (relaxed 1 8)     => '(1 8 9))
 
 [[{:tag "relax*-usage-verbose" :title "Verbose mode"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
-  
+
   (defn fun
     ([a] (list a))
     ([a b & more] (list* a b more)))
-  
+
   (def relaxed (relax* fun
-                           :arities #{3 1}
-                           :variadic true
-                           :verbose true))
-  
+                       :arities #{3 1}
+                       :variadic true
+                       :verbose true))
+
   (relaxed)
   => {:argc-cutted   0
       :argc-padded   1
@@ -112,7 +112,7 @@
       :variadic      true
       :variadic-used false
       :verbose       true} 
-  
+
   (relaxed 1 2 3)
   => {:argc-cutted   0
       :argc-padded   0
@@ -128,14 +128,15 @@
       :verbose       true})
 
 [[{:tag "relax*-usage-argc" :title "Chaining with <code>argc</code>"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
+
   (defn fun
     ([a b]   (list a b))
     ([a b c] (list a b c)))
-  
+
   (def relaxed (mapply relax* fun (argc fun)))
-  
+
   (relaxed)         => '(nil nil)
   (relaxed 1)       => '(1 nil)
   (relaxed 1 2)     => '(1 2)
@@ -143,14 +144,15 @@
   (relaxed 1 2 3 4) => '(1 2 3))
 
 [[{:tag "relax*-usage-power" :title "With great power comes great responsibility"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
+
   (defn fun
     ([a b]   (list a b))
     ([a b c] (list a b c)))
-  
+
   (def relaxed (relax* fun :arities #{1 2 5}))  ; wrong arities!
-  
+
   (relaxed)         => (throws clojure.lang.ArityException)
   (relaxed 1)       => (throws clojure.lang.ArityException)
   (relaxed 1 2)     => '(1 2)
@@ -158,11 +160,12 @@
   (relaxed 1 2 3 4) => (throws clojure.lang.ArityException))
 
 [[{:tag "relax*-usage-notfun" :title "Handling invalid values"}]]
-^{:refer futils.core/relax* :added "0.1"}
+^{:refer futils.args/relax* :added "0.1"}
 (fact
+
   (defn fun [])
   (def  notfun)
-  
+
   (relax*    #())               => (throws java.lang.AssertionError)
   (relax*    #() #())           => (throws java.lang.IllegalArgumentException)
   (relax*    nil nil)           => (throws java.lang.IllegalArgumentException)
@@ -177,4 +180,3 @@
   (relax* notfun :arities #{0}) => (throws java.lang.AssertionError)
   (relax* String :arities #{0}) => (throws java.lang.AssertionError)
   (relax*  #'fun :arities #{0}) => (throws java.lang.AssertionError))
-
