@@ -5,7 +5,8 @@
 
     futils.core
 
-  (:require [futils.utils :refer :all]))
+  (:require [futils.utils :refer :all]
+            [clojure.set  :as    s]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Counting function arguments.
