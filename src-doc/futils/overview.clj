@@ -6,35 +6,37 @@
 `futils` is a library that provides a set of forms that add some abstractions
 for managing functions in Clojure.
 
-Currently implemented macros and functions are:
+Currently provided macros and functions are:
 
-* [`argc`](#argc) – counts arguments a function takes (for all arities),
-* [`frepeat`](#frepeat) – creates a sequence of returned values using a function
-  with named parameters,
-* [`mapply`](#mapply) – works like apply but with named arguments,
-* [`nameize`](#nameize) – transforms a function so it accepts named arguments,
-* [`nameize*`](#nameize*) – like `nameize` but requires symbols to be quoted,
-* [`relax`](#relax) – wraps a function in a way that it accepts any number of
+* [`futils.args/argc`](#argc) – counts arguments a function takes (for all arities),
+* [`futils.args/relax`](#relax) – wraps a function in a way that it accepts any number of
   arguments,
-* [`relax*`](#relax*) – like `relax` but it requires to explicitly
-  describe the accepted arities.
+* [`futils.args/relax*`](#relax*) – like `relax` but it requires to explicitly
+  describe the accepted arities,
+* [`futils.named/nameize`](#nameize) – transforms a function so it accepts named arguments,
+* [`futils.named/nameize*`](#nameize*) – like `nameize` but requires symbols to be quoted,
+* [`futils.utils/frepeat`](#frepeat) – creates a sequence of returned values (uses named arguments),
+* [`futils.utlis/mapply`](#mapply) – works like apply but with named arguments.
 "
 
 [[:chapter {:title "Installation"}]]
 
-"Add to `project.clj` dependencies: 
+"Add to `project.clj` dependencies:
 
 `[pl.randomseed/futils `\"`{{PROJECT.version}}`\"`]`
 
 Then require it in your program:
 
-`(require 'futils.core :as futils)`
+`(require 'futils.utils :as futils)`  
+`(require 'futils.args  :as fargs)`  
+`(require 'futils.named :as fnamed)`  
 
-or:
+(depending on which functions should be used) or:
 
-`(ns your-namespace`
-`  (:require [futils.core :as futils]))`
-
+`(ns your-namespace`  
+`  (:require [futils.utils :as futils])`  
+`  (:require [futils.args  :as fargs])`  
+`  (:require [futils.named :as fnamed]))`
 "
 
 [[:chapter {:title "Usage"}]]
@@ -44,12 +46,12 @@ or:
 
 [[{:tag "argc-synopsis" :title "Synopsis" :numbered false}]]
 (comment
-  (futils.core/argc f & options))
+  (futils.args/argc f & options))
 
 "
 Determines the number of arguments that the given function takes and returns
 a map containing these keys:
-  
+
 * `:arities`  – a sorted set of argument counts for all arities,
 * `:engine`:
   * `:clj` – if metadata were used to determine arities – DEPRECATED);
@@ -58,15 +60,15 @@ a map containing these keys:
 * `:variadic` – a flag informing whether the widest arity is variadic.
 
 Variadic parameter is counted as one of the possible arguments.
-  
+
 The macro flag (`:macro`) is only present when macro was detected.
-  
+
 If the given argument cannot be used to obtain a Var bound to a functon or
 a function object then it returns `nil`.
 "
 
 [[:subsection {:title "Usage examples" :tag "argc-usage-ex"}]]
-[[:file {:src "test/futils/core/argc.clj"}]]
+[[:file {:src "test/futils/args/argc.clj"}]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -74,7 +76,7 @@ a function object then it returns `nil`.
 
 [[{:tag "relax-synopsis" :title "Synopsis" :numbered false}]]
 (comment
-  (futils.core/relax f & options))
+  (futils.args/relax f & options))
 
 "
 Returns a variadic function object that calls the given function `f`,
@@ -112,70 +114,7 @@ See [`relax*`](#relax*) for detailed descriptions of `:pad-fn` and
 "
 
 [[:subsection {:title "Usage examples" :tag "relax-usage-ex"}]]
-[[:file {:src "test/futils/core/relax.clj"}]]
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-[[:section {:title "nameize" :tag "nameize"}]]
-
-[[{:tag "nameize-synopsis" :title "Synopsis" :numbered false}]]
-(comment
-  (futils.core/nameize f [names] {defaults}?))
-
-"
-Creates a wrapper that passes named arguments as positional arguments. Takes
-a funtion object (`f`), a vector S-expression containing names of expected
-arguments (`names`) expressed as keywords, symbols, strings or whatever suits
-you, and an optional map S-expression of default values for named
-arguments (`defaults`).
-
-The order of names in a vector is important. Each given name will become a key
-of named argument which value will be passed to the given function on the same
-position as in the vector.
-
-If unquoted symbol is given in a vector or in a map, it will be transformed to
-a keyword of the same name. Use quoted symbols if you want to use symbols as
-keys of named arguments.
-
-If the `&rest` special symbol is placed in a vector then the passed value that
-corresponds to its position will be a map containing all named arguments that
-weren't handled. If there are none, `nil` value is passed.
-
-The result is a function object."
-
-[[:subsection {:title "Usage examples" :tag "nameize-usage-ex"}]]
-[[:file {:src "test/futils/core/nameize.clj"}]]
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-[[:section {:title "nameize*" :tag "nameize*"}]]
-
-[[{:tag "nameize*-synopsis" :title "Synopsis" :numbered false}]]
-(comment
-  (futils.core/nameize* f names defaults))
-
-"
-Creates a wrapper that passes named arguments as positional arguments. Takes
-a funtion object (`f`), a collection (preferably a vector) containing expected
-names of arguments (`names`) expressed as keywords, symbols, strings or whatever
-suits you, and a map of default values for named arguments (`defaults`).
-
-The order of names in a vector is important. Each given name will become a key of
-named argument which value will be passed to the given function on the same
-position as in the vector.
-
-If unquoted symbol is given in a vector or in a map, it will be transformed to
-a keyword of the same name. Use quoted symbols if you want to use symbols as
-keys of named arguments.
-
-If the `&rest` special symbol is placed in `exp-args` vector then the passed
-value that corresponds to its position will be a map containing all named
-arguments that weren't handled. If there are none, nil value is passed.
-
-A function object is returned."
-
-[[:subsection {:title "Usage examples" :tag "nameize*-usage-ex"}]]
-[[:file {:src "test/futils/core/nameize_st.clj"}]]
+[[:file {:src "test/futils/args/relax.clj"}]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -183,13 +122,13 @@ A function object is returned."
 
 [[{:tag "relax*-synopsis" :title "Synopsis" :numbered false}]]
 (comment
-  (futils.core/relax* f & options))
+  (futils.args/relax* f & options))
 
 "
 Returns a variadic function object that calls the given function, adjusting
 the number of passed arguments to a nearest arity. It cuts argument list or pads
 it with nil values if necessary.
-  
+
 It takes 1 positional, obligatory argument, which should be a function (`f`) and
 two named, keyword arguments:
 
@@ -197,9 +136,9 @@ two named, keyword arguments:
 * `:variadic` – a flag informing whether the widest arity is variadic.
 
 It also makes use of optional named arguments:
-  
+
 * `:pad-fn`  – a function that generates values for padding,
-* `:pad-val` – a value to use for padding instead of `nil`,  
+* `:pad-val` – a value to use for padding instead of `nil`,
 * `:verbose` – a switch (defaults to `false`) that if set to `true`, causes wrapper
                to return a map containing additional information.
 
@@ -220,9 +159,9 @@ a number of arguments passed then all of them will be used to call a function."
 
 [[:subsection {:title "Verbose mode" :tag "relax*-verbose-mode"}]]
 
-" 
+"
 If the `:verbose` flag is set the result will be a map containing the following:
-  
+
 * `:argc-received` – a number of arguments received by the wrapper,
 * `:argc-sent`     – a number of arguments passed to a function,
 * `:argc-cutted`   – a number of arguments ignored,
@@ -260,7 +199,104 @@ a passed map. That allows to use a default value in a binding map of `f` or to
 make easy checks if there would be some previous value (`nil` is ambiguous)."
 
 [[:subsection {:title "Usage examples" :tag "relax*-usage-ex"}]]
-[[:file {:src "test/futils/core/relax_st.clj"}]]
+[[:file {:src "test/futils/args/relax_st.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[[:section {:title "nameize" :tag "nameize"}]]
+
+[[{:tag "nameize-synopsis" :title "Synopsis" :numbered false}]]
+(comment
+  (futils.named/nameize f [names])
+  (futils.named/nameize f [names] {defaults})
+  (futils.named/nameize f arity-mappings…))
+
+"where `arity-mappings` is a pair expressed as: `[names] {defaults}`."
+
+"
+Creates a wrapper that passes named arguments as positional arguments. Takes
+a funtion object (`f`), a vector S-expression containing names of expected
+arguments (`names`) expressed as keywords, symbols, strings or whatever suits
+you, and an optional map S-expression of default values for named
+arguments (`defaults`).
+
+Since version 0.7.0 it accepts multiple arity mappings expressed as
+pairs consisting of vectors of argument names and maps of default values for
+all or some of names.
+
+The order of names in a vector is important. Each given name will become a key
+of named argument which value will be passed to the given function on the same
+position as in the vector.
+
+If unquoted symbol is given in a vector or in a map, it will be transformed to
+a keyword of the same name. Use quoted symbols if you want to use symbols as
+keys of named arguments.
+
+If the `&rest` special symbol is placed in a vector then the passed value that
+corresponds to its position will be a map containing all named arguments that
+weren't handled. If there are none, `nil` value is passed.
+
+The macro is capable of handling multiple arities. In such case the declared
+arity will be matched against the given named arguments by comparing its keys
+with keys in all declared mappings. First it will try to match them without
+considering default values (if any) and in case there is no success (there is
+no declared arity that can be satisfied by the given arguments) matching is
+preformed again with default arguments merged. From the resulting set of
+matching arity mappings the picked one is that with the least
+requirements (that has the lowest count of declared arguments).
+
+The result is a function object."
+
+[[:subsection {:title "Usage examples" :tag "nameize-usage-ex"}]]
+[[:file {:src "test/futils/named/nameize.clj"}]]
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[[:section {:title "nameize*" :tag "nameize*"}]]
+
+[[{:tag "nameize*-synopsis" :title "Synopsis" :numbered false}]]
+(comment
+  (futils.named/nameize* f names)
+  (futils.named/nameize* f names defaults)
+  (futils.named/nameize* f arity-mappings…))
+
+"where `arity-mappings` is a pair expressed as: `names defaults`."
+
+"
+Creates a wrapper that passes named arguments as positional arguments. Takes
+a funtion object (`f`), a collection (preferably a vector) containing expected
+names of arguments (`names`) expressed as keywords, symbols, strings or whatever
+suits you, and a map of default values for named arguments (`defaults`).
+
+Since version 0.7.0 it accepts multiple arity mappings expressed as
+pairs consisting of vectors of argument names and maps of default values for
+all or some of names.
+
+The order of names in a vector is important. Each given name will become a key of
+named argument which value will be passed to the given function on the same
+position as in the vector.
+
+If unquoted symbol is given in a vector or in a map, it will be transformed to
+a keyword of the same name. Use quoted symbols if you want to use symbols as
+keys of named arguments.
+
+If the `&rest` special symbol is placed in `exp-args` vector then the passed
+value that corresponds to its position will be a map containing all named
+arguments that weren't handled. If there are none, nil value is passed.
+
+The function is capable of handling multiple arities. In such case the
+declared arity will be matched against the given named arguments by comparing
+its keys with keys in all declared mappings. First it will try to match them
+without considering default values (if any) and in case there is no
+success (there is no declared arity that can be satisfied by the given
+arguments) matching is preformed again with default arguments merged. From the
+resulting set of matching arity mappings the picked one is that with the least
+requirements (that has the lowest count of declared arguments).
+
+A function object is returned."
+
+[[:subsection {:title "Usage examples" :tag "nameize*-usage-ex"}]]
+[[:file {:src "test/futils/named/nameize_st.clj"}]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -268,7 +304,7 @@ make easy checks if there would be some previous value (`nil` is ambiguous)."
 
 [[{:tag "frepeat-synopsis" :title "Synopsis" :numbered false}]]
 (comment
-  (futils.core/frepeat n? f kvs?))
+  (futils.utils/frepeat n? f kvs?))
 
 "
 Returns a lazy sequence of results produced by the given function `f` which
@@ -302,7 +338,7 @@ during each call.
 "
 
 [[:subsection {:title "Usage examples" :tag "frepeat-usage-ex"}]]
-[[:file {:src "test/futils/core/frepeat.clj"}]]
+[[:file {:src "test/futils/utils/frepeat.clj"}]]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -310,7 +346,7 @@ during each call.
 
 [[{:tag "mapply-synopsis" :title "Synopsis" :numbered false}]]
 (comment
-  (futils.core/mapply f args* args-map))
+  (futils.utils/mapply f args* args-map))
 
 "
 It works like `apply` but handles named arguments. Takes function `f`, an
@@ -320,5 +356,5 @@ optional list of arguments (`args*`) to be passed during a call to it and a map
 Returns the result of calling f."
 
 [[:subsection {:title "Usage examples" :tag "mapply-usage-ex"}]]
-[[:file {:src "test/futils/core/mapply.clj"}]]
+[[:file {:src "test/futils/utils/mapply.clj"}]]
 

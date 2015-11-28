@@ -81,6 +81,10 @@
   whatever suits you, and a map of default values for named
   arguments (defaults).
 
+  Since version 0.7.0 it accepts multiple arity mappings expressed as pairs
+  consisting of vectors of argument names and maps of default values for all
+  or some of names.
+
   The order of names in a collection is important. Each given name will become
   a key of named argument which value will be passed to the given function on
   the same position as its position in the vector.
@@ -88,6 +92,15 @@
   If the &rest special symbol is placed in exp-args vector then the passed
   value that corresponds to its position will be a map containing all named
   arguments that weren't handled. If there are none, nil value is passed.
+
+  The function is capable of handling multiple arities. In such case the
+  declared arity will be matched against the given named arguments by
+  comparing its keys with keys in all declared mappings. First it will try to
+  match them without considering default values (if any) and in case there is
+  no success (there is no declared arity that can be satisfied by the given
+  arguments) matching is preformed again with default arguments merged. From
+  the resulting set of matching arity mappings the picked one is that with the
+  least requirements (that has the lowest count of declared arguments).
 
   Function returns a function object."
   {:added "0.6"
@@ -134,6 +147,10 @@
   you, and an optional map S-expression of default values for named
   arguments (defaults).
 
+  Since version 0.7.0 it accepts multiple arity mappings expressed as pairs
+  consisting of vectors of argument names and maps of default values for all
+  or some of names.
+
   The order of names in a vector is important. Each given name will become a key
   of named argument which value will be passed to the given function on the same
   position as in the vector.
@@ -141,6 +158,15 @@
   If unquoted symbol is given in a vector or in a map, it will be transformed to
   a keyword of the same name. Use quoted symbols if you want to use symbols as
   keys of named arguments.
+
+  The macro is capable of handling multiple arities. In such case the declared
+  arity will be matched against the given named arguments by comparing its
+  keys with keys in all declared mappings. First it will try to match them
+  without considering default values (if any) and in case there is no
+  success (there is no declared arity that can be satisfied by the given
+  arguments) matching is preformed again with default arguments merged. From
+  the resulting set of matching arity mappings the picked one is that with the
+  least requirements (that has the lowest count of declared arguments).
 
   If the &rest special symbol is placed in a vector then the passed value that
   corresponds to its position will be a map containing all named arguments that
