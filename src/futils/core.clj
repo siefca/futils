@@ -455,66 +455,60 @@
   special-plus
   (into {'&rest true 'nil true} special-symbols))
 
+(defn- throw-arg
+  {:added "0.7"
+   :tag nil}
+  [& msgs]
+  (throw (IllegalArgumentException. ^String (apply str msgs))))
+
+(defn- validate-variadity
+  {:added "0.7"
+   :tag nil}
+  [^clojure.lang.ISeq arities]
+  (when-not (apply distinct? (map count arities))
+    (throw-arg "All declared arities should have different argument counts"))
+  (when-not (apply distinct? (map sort arities))
+    (throw-arg "Each declared arity should have at least one unique argument")))
+
 (defn- validate-argmap
   {:added "0.6"
-   :tag Boolean}
-  [^clojure.lang.IPersistentMap m]
-  (if-some [e (some (partial find special-plus) (keys m))]
-    (throw (IllegalArgumentException. (str "Key " (key e) " is reserved")))
-    true))
-
-(defn- throw-missing-arg
-  {:added "0.6"
    :tag nil}
-  [k]
-  (throw (IllegalArgumentException. (str "No required key present: " k))))
+  [^clojure.lang.IPersistentMap m]
+  (when-some [e (some (partial find special-plus) (keys m))]
+    (throw-arg "Key " (key e) " is reserved")))
 
-(defn- keywordize-syms
-  "Transforms all elements of linear or associative collection from symbols to
-  keywords (except &rest)."
-  {:added "0.6"
-   :arglists '([^clojure.lang.IPersistentVector v]
-               [^clojure.lang.IPersistentMap m]
-               [^clojure.lang.ISeq coll])}
-  [coll]
-  (let [f #(if (symbol? %) (if (= '&rest %) ''&rest (keyword %)) %)]
-    (if (map? coll)
-      (reduce-kv #(assoc %1 (f %2) %3) (empty coll) coll)
-      (map f coll))))
-
-(defn- nameize-with-rest
+(defn- validate-argmaps
   {:added "0.7"
-   :tag clojure.lang.Fn}
-  [^clojure.lang.Fn                    f
-   ^clojure.lang.ISeq           exp-args
-   ^clojure.lang.IPersistentMap defaults]
-  (fn [& {:as args}]
-    (validate-argmap args)
-    (let [args   (into defaults args)
-          topass (select-keys args exp-args)
-          torest (apply dissoc args (keys topass))]
-      (apply f
-             (map #(if-some [ent (find args %)]
-                     (val ent)
-                     (if (= '&rest %)
-                       (not-empty torest)
-                       (throw-missing-arg %)))
-                  exp-args)))))
+   :tag nil}
+  [^clojure.lang.ISeq pairs]
+  (let [arities (take-nth 2 (next pairs))]
+    (doseq [m arities] (validate-argmap m))
+    (validate-variadity arities)))
 
-(defn- nameize-without-rest
+(def count-first (comp count (partial first)))
+
+(defn- closest-arity
   {:added "0.7"
-   :tag clojure.lang.Fn}
-  [^clojure.lang.Fn                    f
-   ^clojure.lang.ISeq           exp-args
-   ^clojure.lang.IPersistentMap defaults]
-  (fn [& {:as args}]
-    (validate-argmap args)
-    (let [args (into defaults args)]
-      (apply f
-             (map #(if-some [ent (find args %)]
-                     (val ent)
-                     (throw-missing-arg %))
-                  exp-args)))))
+   :tag clojure.lang.ISeq}
+  ([^clojure.lang.IPersistentMap args
+    ^clojure.lang.ISeq pairs]
+   (let [ari (closest-arity args pairs false)]
+     (if (<= (count args) (count-first ari))
+       ari
+       (closest-arity args pairs true))))
+  ([^clojure.lang.IPersistentMap args
+    ^clojure.lang.ISeq pairs
+    ^Boolean use-defaults]
+   (let [base (set (keys args))
+         gens (if use-defaults
+                #(into (set (keys (last %))) base)
+                (constantly base))]
+     (->> pairs
+          (partition-all 2)
+          (group-by #(count (s/intersection (gens %) (set (first %)))))
+          (apply max-key first)
+          last
+          (apply min-key count-first)))))
 
 (defn nameize*
   "Creates a wrapper that passes named arguments as positional arguments. Takes
@@ -534,14 +528,40 @@
   Function returns a function object."
   {:added "0.6"
    :tag clojure.lang.Fn}
-  [^clojure.lang.Fn                     f
-   ^clojure.lang.ISeq            exp-args
-   ^clojure.lang.IPersistentMap  defaults]
-  {:pre [(instance? clojure.lang.Fn f)
-         (validate-argmap defaults)]}
-  (if (some #(= '&rest %) exp-args)
-    (nameize-with-rest    f exp-args defaults)
-    (nameize-without-rest f exp-args defaults)))
+  [^clojure.lang.Fn f & more]
+  {:pre [(instance? clojure.lang.Fn f)]}
+  (validate-argmaps more)
+  (fn [& {:as args}]
+    (validate-argmap args)
+    (let [arit (closest-arity args more)
+          expa (first arit)
+          defl (last arit)
+          args (into defl args)
+          argp (select-keys args expa)
+          argr (apply dissoc args (keys argp))
+          pckr #(if-some [ent (find args %)]
+                  (val ent)
+                  (if (= '&rest %)
+                    (not-empty argr)
+                    (throw-arg "No required key present: " %)))]
+      (->> arit
+           (take-nth 2)
+           (apply concat)
+           (map pckr)
+           (apply f)))))
+
+(defn- keywordize-syms
+  "Transforms all elements of linear or associative collection from symbols to
+  keywords (except &rest)."
+  {:added "0.6"
+   :arglists '([^clojure.lang.IPersistentVector v]
+               [^clojure.lang.IPersistentMap m]
+               [^clojure.lang.ISeq coll])}
+  [coll]
+  (let [f #(if (symbol? %) (if (= '&rest %) ''&rest (keyword %)) %)]
+    (if (map? coll)
+      (reduce-kv #(assoc %1 (f %2) %3) (empty coll) coll)
+      (map f coll))))
 
 (defmacro nameize
   "Creates a wrapper that passes named arguments as positional arguments. Takes
@@ -565,16 +585,16 @@
   The result is a function object."
   {:added "0.6"}
   ([f exp-args] `(nameize ~f ~exp-args {}))
-  ([f exp-args defaults]
-   (if (vector? exp-args)
-     nil
-     (throw (IllegalArgumentException.
-             "Second argument to nameize must be a vector")))
-   (if (map? defaults)
-     nil
-     (throw (IllegalArgumentException.
-             "Last argument to nameize must be a map")))
-   (let [m (cons 'list (#'keywordize-syms exp-args))
-         d (#'keywordize-syms defaults)]
-     `(nameize* ~f ~m ~d))))
-
+  ([f exp-args defaults & more]
+   (let [m (partition-all 2 (list* exp-args defaults more))
+         n (reduce
+            (fn [acc [exp defl]]
+              (when-not (vector? exp)
+                (throw-arg "First argument in naming pair must be a vector"))
+              (when-not (map? defl)
+                (throw-arg "Last argument in naming pair must be a map"))
+              (->> acc
+                   (cons (#'keywordize-syms defl))
+                   (cons (cons 'list (#'keywordize-syms exp)))))
+            () m)]
+     `(nameize* ~f ~@n))))
