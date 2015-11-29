@@ -24,13 +24,12 @@
   not-ampersand?
   (partial not= '&))
 
-(def
-  ^{:added "0.7"
-    :tag long
-    :arglists '([^clojure.lang.ISeq coll])}
-  count-first
-  "Counts elements of a first collection in a given collection."
-  (comp count (partial first)))
+(defn count-first
+  "Counts elements of a collection which is the first element of a given
+  collection."
+  {:added "0.7"}
+  ^long [^clojure.lang.ISeq coll]
+  (count (first coll)))
 
 (defmacro
   ^{:added "0.6"}

@@ -23,33 +23,56 @@
   [& msgs]
   (throw (IllegalArgumentException. ^String (apply str msgs))))
 
+(defn- unicompare
+  {:added "0.7"
+   :tag long}
+  [x y]
+  (if (= (class x) (class y))
+    (compare x y)
+    (compare (str x) (str y))))
+
 (defn- validate-variadity
+  "Validates a sequence of collections and tests their uniqueness."
   {:added "0.7"
    :tag nil}
   [^clojure.lang.ISeq arities]
   (when-not (apply distinct? (map count arities))
     (throw-arg "All declared arities should have different argument counts"))
-  (when-not (apply distinct? (map sort arities))
+  (when-not (apply distinct? (map #(sort unicompare %) arities))
     (throw-arg "Each declared arity should have at least one unique argument")))
 
-(defn- validate-argmap
-  "Validates sequential collection containing argument mappings by testing if
-  it contains reserved (special) symbols."
+(defn- validate-args
+  "Validates sequential collection containing argument names by testing if
+  they are reserved (special) symbols."
   {:added "0.6"
    :tag nil}
-  [^clojure.lang.IPersistentMap m]
-  (when-some [e (some (partial find special-plus) (keys m))]
-    (throw-arg "Key " (key e) " is reserved")))
+  [^clojure.lang.ISeq coll]
+  (when-some [e (some (partial find special-plus) coll)]
+    (throw-arg "Key " (key e) " is reserved and cannot be used as argument name")))
 
-(defn- validate-argmaps
-  "Validates argument mappings expressed as a sequence of vectors (or other
-  sequential collections)."
+(defn- validate-arities
+  "Validates a sequence of arities."
   {:added "0.7"
    :tag nil}
-  [^clojure.lang.ISeq pairs]
-  (let [arities (take-nth 2 pairs)]
-    (doseq [m arities] (validate-argmap m))
-    (validate-variadity arities)))
+  [^clojure.lang.ISeq colls]
+  (doseq [m colls] (validate-args m)))
+
+(def validate-named-args
+  "Validates associative collection containing named arguments by testing if
+  the keys contain reserved (special) symbols."
+  ^{:added "0.6"
+    :private true
+    :tag nil
+    :arglists '([^clojure.lang.IPersistentMap m])}
+  (comp validate-args (partial keys)))
+
+(def validate-named-arities
+  "Validates a sequence of named arguments expressed as maps."
+  ^{:added "0.7"
+    :private true
+    :tag nil
+    :arglists '([^clojure.lang.ISeq coll])}
+  (comp validate-arities (partial map keys)))
 
 (defn- closest-arity
   {:added "0.7"
@@ -107,9 +130,10 @@
    :tag clojure.lang.Fn}
   [^clojure.lang.Fn f & more]
   {:pre [(instance? clojure.lang.Fn f)]}
-  (validate-argmaps more)
+  (validate-variadity (take-nth 2 more))
+  (validate-named-arities (take-nth 2 (next more)))
   (fn [& {:as args}]
-    (validate-argmap args)
+    (validate-named-args args)
     (let [arit (closest-arity args more)
           expa (first arit)
           defl (last arit)
