@@ -32,6 +32,21 @@
   (nfun :a 1 :b 2 :c 3)
   => '(1 2 3 nil))
 
+[[{:tag "nameize-usage-multi" :title "Handling multiple arities by <code>nameize</code>"}]]
+^{:refer futils.named/nameize :added "0.7"}
+(fact
+
+  (def nfun (nameize #(%&)
+                     [a]         {:a 5}
+                     [a b]       {}
+                     [a b &rest] {}))
+
+  (nfun)                     => '(5)
+  (nfun :a 1)                => '(1)
+  (nfun :a 1 :b 2)           => '(1 2)
+  (nfun :a 1 :b 2 :c 3)      => '(1 2 {:c 3})
+  (nfun :a 1 :b 2 :c 3 :d 4) => '(1 2 {:c 3 :d 4}))
+
 [[{:tag "nameize-usage-notfun" :title "Handling invalid values by <code>nameize</code>"}]]
 ^{:refer futils.named/nameize :added "0.6"}
 (fact
