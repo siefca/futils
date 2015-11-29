@@ -1,8 +1,8 @@
 (ns
-    
+
     ^{:doc    "futils library, utility functions."
       :author "Paweł Wilk"}
-    
+
     futils.utils)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

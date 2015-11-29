@@ -1,9 +1,9 @@
-(ns futils.core.mapply
+(ns futils.utils.mapply
   (:use midje.sweet)
-  (:require [futils.core :refer [mapply]]))
+  (:require [futils.utils :refer [mapply]]))
 
 [[{:tag "mapply-usage" :title "Usage of <code>mapply</code>"}]]
-^{:refer futils.core/mapply :added "0.2"}
+^{:refer futils.utils/mapply :added "0.2"}
 (fact
 
   (mapply assoc {} {:a 1 :b 2 :c 3})
@@ -18,8 +18,9 @@
   => '(1 2 3 10 20))
 
 [[{:tag "mapply-usage-notfun" :title "Handling invalid values by <code>mapply</code>"}]]
-^{:refer futils.core/mapply :added "0.2"}
+^{:refer futils.utils/mapply :added "0.2"}
 (fact
+
   (def notfun)
 
   (mapply)        => (throws clojure.lang.ArityException)

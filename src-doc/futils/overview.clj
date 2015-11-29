@@ -103,9 +103,9 @@ a number of arguments passed then all of them will be used during a function
 call (no argument will be ignored).
 
 It takes optional named arguments:
-  
+
 * `:pad-fn` – a function that generates values for padding,
-* `:pad-val` – a value to use for padding instead of `nil`,  
+* `:pad-val` – a value to use for padding instead of `nil`,
 * `:verbose` – a switch (defaults to `false`) that if set to true causes
                wrapper to return a map containing additional information.
 
