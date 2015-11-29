@@ -10,7 +10,7 @@
   => {:arities  #{0 2}
       :engine   :jvm
       :variadic false}
-
+  
   (argc (fn [a b & c]))
   => {:arities  #{3}
       :engine   :jvm
@@ -21,7 +21,7 @@
 (fact
 
   (defn fun ([]) ([a]) ([a b]) ([a b & c]))
-
+  
   (argc fun)
   => {:arities  #{0 1 2 3}
       :engine   :jvm
@@ -32,7 +32,7 @@
 (fact
 
   (defmacro mak ([]) ([a]) ([a b]) ([a b & c]))
-
+  
   (argc #'mak)
   => {:arities  #{0 1 2 3}
       :engine   :jvm
@@ -43,7 +43,7 @@
 ^{:refer futils.args/argc :added "0.1"}
 (comment
   (defmacro mak ([]) ([a]))
-
+  
   (argc mak)
   => {:arities  #{0 1}
       :engine   :jvm
@@ -54,10 +54,9 @@
 ^{:refer futils.args/argc :added "0.1"}
 (fact
   (def notfun)
-
+  
   (argc   1)    => nil
   (argc nil)    => nil
   (argc "a")    => nil
   (argc notfun) => nil
   (argc String) => nil)
-

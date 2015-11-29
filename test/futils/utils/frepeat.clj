@@ -8,10 +8,10 @@
 
   (take 5 (frepeat (constantly :x)))
   => '(:x :x :x :x :x)
-
+  
   (frepeat 5 (constantly :x))
   => '(:x :x :x :x :x)
-
+  
   (frepeat 5 (fn [& {:keys [iteration]}] iteration))
   => '(1 2 3 4 5))
 
@@ -23,7 +23,7 @@
   (def numbers (frepeat repeater {:previous 0}))
   (take 5 numbers)
   => '(1 2 3 4 5)
-
+  
   (frepeat 5 (fn [& {:keys [previous]
                      :or {previous 9}}]
                (inc previous)))
@@ -36,7 +36,7 @@
   (defn repeater
     [& {:keys [previous iteration iterations a]}]
     [iteration iterations a])
-
+  
   (frepeat 5 repeater {:a :something})
   => '([1 5 :something]
        [2 5 :something]
@@ -49,7 +49,7 @@
 (fact
 
   (def notfun)
-
+  
   (frepeat)        => (throws clojure.lang.ArityException)
   (frepeat   1)    => (throws java.lang.ClassCastException)
   (frepeat nil)    => (throws java.lang.NullPointerException)

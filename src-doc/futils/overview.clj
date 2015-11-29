@@ -79,9 +79,10 @@ a function object then it returns `nil`.
   (futils.args/relax f & options))
 
 "
+
 Returns a variadic function object that calls the given function `f`,
-adjusting the number of passed arguments to a nearest arity. It cuts argument
-list or pads it with `nil` values if necessary.
+adjusting the number of passed arguments to nearest matching arity. It cuts
+argument list or pads it with `nil` values if necessary.
 
 The arities will be obtained from metadata (if the given object is a symbol
 bound to a `Var` or a `Var` object itself) or using JVM reflection calls to
@@ -125,9 +126,10 @@ See [`relax*`](#relax*) for detailed descriptions of `:pad-fn` and
   (futils.args/relax* f & options))
 
 "
+
 Returns a variadic function object that calls the given function, adjusting
-the number of passed arguments to a nearest arity. It cuts argument list or pads
-it with nil values if necessary.
+the number of passed arguments to nearest matching arity. It cuts argument
+list or pads it with nil values if necessary.
 
 It takes 1 positional, obligatory argument, which should be a function (`f`) and
 two named, keyword arguments:

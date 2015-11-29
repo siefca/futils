@@ -9,6 +9,7 @@
   (mapply assoc {} {:a 1 :b 2 :c 3})
   => {:a 1 :b 2 :c 3}
 
+
   (defn fun [& {:as args}] args)
   (mapply fun {:a 1 :b 2 :c 3})
   => {:a 1 :b 2 :c 3}
@@ -22,6 +23,7 @@
 (fact
 
   (def notfun)
+
 
   (mapply)        => (throws clojure.lang.ArityException)
   (mapply      1) => (throws java.lang.ClassCastException)

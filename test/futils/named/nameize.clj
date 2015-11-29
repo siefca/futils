@@ -10,6 +10,7 @@
   (nfun :a 1 :b 2)
   => '(1 2)
 
+  
   (def nfun (nameize (fn [& a] a) [a b] {:a 7 :b 8}))
   (nfun :b 2)
   => '(7 2)
@@ -33,27 +34,29 @@
   => '(1 2 3 nil))
 
 [[{:tag "nameize-usage-multi" :title "Handling multiple arities by <code>nameize</code>"}]]
-^{:refer futils.named/nameize :added "0.7"}
+^{:refer futils.named/nameize :added "0.6"}
 (fact
 
-  (def nfun (nameize #(%&)
-                     [a]         {:a 5}
-                     [a b]       {}
-                     [a b &rest] {}))
+  (def nfun (nameize (fn [& a] a)
+                     [a]           {:a 5}
+                     [a b]         {}
+                     [a b &rest]   {}
+                     [a b c &rest] {:a 1 :e 5}))
 
-  (nfun)                     => '(5)
-  (nfun :a 1)                => '(1)
-  (nfun :a 1 :b 2)           => '(1 2)
-  (nfun :a 1 :b 2 :c 3)      => '(1 2 {:c 3})
-  (nfun :a 1 :b 2 :c 3 :d 4) => '(1 2 {:c 3 :d 4}))
+  
+  (nfun)                     => '(5)                   ; matched: [a]
+  (nfun :a 1)                => '(1)                   ; matched: [a]
+  (nfun :a 1 :b 2)           => '(1 2)                 ; matched: [a b]
+  (nfun :a 1 :b 2 :c 3)      => '(1 2 3 {:e 5})        ; matched: [a b c &rest]
+  (nfun :a 1 :b 2 :c 3 :d 4) => '(1 2 3 {:d 4 :e 5}))  ; matched: [a b c &rest]
 
 [[{:tag "nameize-usage-notfun" :title "Handling invalid values by <code>nameize</code>"}]]
 ^{:refer futils.named/nameize :added "0.6"}
 (fact
   (def notfun)
-
   (nameize notfun []) => (throws java.lang.AssertionError)
 
+  
   (defn fun [a b] (list a b))
   (def nfun (nameize fun [a b]))
   (nfun :a 1)

@@ -1,4 +1,4 @@
-(defproject pl.randomseed/futils "0.6.0"
+(defproject pl.randomseed/futils "0.7.0"
   :description "Function Utilities library"
   :url "https://randomseed.pl/software/futils"
   
