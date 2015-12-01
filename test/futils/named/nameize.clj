@@ -39,14 +39,15 @@
 
   (def nfun (nameize (fn [& a] a)
                      [a]           {:a 5}
-                     [a b]         {}
-                     [a b &rest]   {}
+                     [a c]
+                     [a b &rest]
                      [a b c &rest] {:a 1 :e 5}))
 
   
   (nfun)                     => '(5)                   ; matched: [a]
   (nfun :a 1)                => '(1)                   ; matched: [a]
-  (nfun :a 1 :b 2)           => '(1 2)                 ; matched: [a b]
+  (nfun :a 1 :c 3)           => '(1 3)                 ; matched: [a c]
+  (nfun :a 1 :b 2)           => '(1 2 nil)             ; matched: [a b &rest]
   (nfun :a 1 :b 2 :c 3)      => '(1 2 3 {:e 5})        ; matched: [a b c &rest]
   (nfun :a 1 :b 2 :c 3 :d 4) => '(1 2 3 {:d 4 :e 5}))  ; matched: [a b c &rest]
 
@@ -54,10 +55,13 @@
 ^{:refer futils.named/nameize :added "0.6"}
 (fact
   (def notfun)
-  (nameize notfun []) => (throws java.lang.AssertionError)
-
-  
   (defn fun [a b] (list a b))
+  
+  (nameize notfun []) => (throws java.lang.AssertionError)
+  
   (def nfun (nameize fun [a b]))
   (nfun :a 1)
+  => (throws java.lang.IllegalArgumentException)
+  
+  (nameize fun [:a] [:b] [:a b])
   => (throws java.lang.IllegalArgumentException))
