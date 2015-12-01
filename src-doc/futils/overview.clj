@@ -239,13 +239,14 @@ corresponds to its position will be a map containing all named arguments that
 weren't handled. If there are none, `nil` value is passed.
 
 The macro is capable of handling multiple arities. In such case the declared
-arity will be matched against the given named arguments by comparing its keys
-with keys in all declared mappings. First it will try to match them without
-considering default values (if any) and in case there is no success (there is
-no declared arity that can be satisfied by the given arguments) matching is
-preformed again with default arguments merged. From the resulting set of
-matching arity mappings the picked one is that with the least
-requirements (that has the lowest count of declared arguments).
+arities (e.g. [:a :b] [:a :b :c]) will be matched against the given named
+arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to key
+names. First it will try to match them without considering default values (if
+any) and in case there is no success (there is no declared arity that can be
+satisfied by the given arguments) matching is preformed again but with default
+arguments merged. From the resulting set of matching arity mappings the one
+with the least requirements is chosen (that has the lowest count of declared
+arguments).
 
 The result is a function object."
 
@@ -287,13 +288,14 @@ value that corresponds to its position will be a map containing all named
 arguments that weren't handled. If there are none, nil value is passed.
 
 The function is capable of handling multiple arities. In such case the
-declared arity will be matched against the given named arguments by comparing
-its keys with keys in all declared mappings. First it will try to match them
-without considering default values (if any) and in case there is no
-success (there is no declared arity that can be satisfied by the given
-arguments) matching is preformed again with default arguments merged. From the
-resulting set of matching arity mappings the picked one is that with the least
-requirements (that has the lowest count of declared arguments).
+declared arities (e.g. [:a :b] [:a :b :c]) will be matched against the given
+named arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to key
+names. First it will try to match them without considering default values (if
+any) and in case there is no success (there is no declared arity that can be
+satisfied by the given arguments) matching is preformed again but with default
+arguments merged. From the resulting set of matching arity mappings the one
+with the least requirements is chosen (that has the lowest count of declared
+arguments).
 
 A function object is returned."
 
