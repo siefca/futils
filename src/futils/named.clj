@@ -117,13 +117,14 @@
   arguments that weren't handled. If there are none, nil value is passed.
 
   The function is capable of handling multiple arities. In such case the
-  declared arity will be matched against the given named arguments by
-  comparing its keys with keys in all declared mappings. First it will try to
-  match them without considering default values (if any) and in case there is
-  no success (there is no declared arity that can be satisfied by the given
-  arguments) matching is preformed again with default arguments merged. From
-  the resulting set of matching arity mappings the picked one is that with the
-  least requirements (that has the lowest count of declared arguments).
+  declared arities (e.g. [:a :b] [:a :b :c]) will be matched against the given
+  named arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to
+  key names. First it will try to match them without considering default
+  values (if any) and in case there is no success (there is no declared arity
+  that can be satisfied by the given arguments) matching is preformed again
+  but with default arguments merged. From the resulting set of matching arity
+  mappings the one with the least requirements is chosen (that has the lowest
+  count of declared arguments).
 
   Function returns a function object."
   {:added "0.6"
@@ -184,13 +185,14 @@
   keys of named arguments.
 
   The macro is capable of handling multiple arities. In such case the declared
-  arity will be matched against the given named arguments by comparing its
-  keys with keys in all declared mappings. First it will try to match them
-  without considering default values (if any) and in case there is no
-  success (there is no declared arity that can be satisfied by the given
-  arguments) matching is preformed again with default arguments merged. From
-  the resulting set of matching arity mappings the picked one is that with the
-  least requirements (that has the lowest count of declared arguments).
+  arities (e.g. [:a :b] [:a :b :c]) will be matched against the given named
+  arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to key
+  names. First it will try to match them without considering default
+  values (if any) and in case there is no success (there is no declared arity
+  that can be satisfied by the given arguments) matching is preformed again
+  but with default arguments merged. From the resulting set of matching arity
+  mappings the one with the least requirements is chosen (that has the lowest
+  count of declared arguments).
 
   If the &rest special symbol is placed in a vector then the passed value that
   corresponds to its position will be a map containing all named arguments that
@@ -200,15 +202,20 @@
   {:added "0.6"}
   ([f exp-args] `(nameize ~f ~exp-args {}))
   ([f exp-args defaults & more]
-   (let [m (partition-all 2 (list* exp-args defaults more))
-         n (reduce
-            (fn [acc [exp defl]]
-              (when-not (vector? exp)
-                (throw-arg "First argument in naming pair must be a vector"))
-              (when-not (map? defl)
-                (throw-arg "Last argument in naming pair must be a map"))
-              (->> acc
-                   (cons (#'keywordize-syms defl))
-                   (cons (cons 'list (#'keywordize-syms exp)))))
-            () m)]
+   (let [n (->> (list* exp-args defaults more)
+                (reduce (fn [acc e]
+                          (if (and (vector? (first acc)) (not (map? e)))
+                            (recur (cons {} acc) e)
+                            (cons e acc))) ()))
+         n (->> (if (map? (first n)) n (cons {} n))
+                (partition-all 2)
+                (reduce
+                 (fn [acc [defl exp]]
+                   (when-not (vector? exp)
+                     (throw-arg "First element of a mapping pair must be a vector"))
+                   (when-not (map? defl)
+                     (throw-arg "Last element of a mapping pair must be a map"))
+                   (->> acc
+                        (cons (#'keywordize-syms defl))
+                        (cons (cons 'list (#'keywordize-syms exp))))) ()))]
      `(nameize* ~f ~@n))))
