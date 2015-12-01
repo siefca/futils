@@ -214,7 +214,7 @@
                    (when-not (vector? exp)
                      (throw-arg "First element of a mapping pair must be a vector"))
                    (when-not (map? defl)
-                     (throw-arg "Last element of a mapping pair must be a map"))
+                     (throw-arg "Second element of a mapping pair must be a map"))
                    (->> acc
                         (cons (#'keywordize-syms defl))
                         (cons (cons 'list (#'keywordize-syms exp))))) ()))]

@@ -1,5 +1,9 @@
 # History of futils releases
 
+## 0.7.1 (2015-12-01)
+
+- The `nameize` macro allows to omit default values maps in mapping pairs.
+
 ## 0.7.0 (2015-11-30)
 
 - Functions spread across namespaces: `utils`, `named` and `args`.
