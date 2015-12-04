@@ -1,5 +1,10 @@
 # History of futils releases
 
+## 0.8.0 (2015-12-02)
+
+- Nameization does not use set operations to find matching arity.
+- Nameization properly handles `nil` values given as default named arguments.
+
 ## 0.7.1 (2015-12-01)
 
 - The `nameize` macro allows to omit default values maps in mapping pairs.
