@@ -74,32 +74,73 @@
     :arglists '([^clojure.lang.ISeq coll])}
   (comp validate-arities (partial map keys)))
 
-(defn- closest-arity
+(defn- intersect-args
+  "Returns a sequence of argument names that are common for the given map (as
+  keys) and the given arity (as elements)."
+  {:added "0.8"
+   :tag clojure.lang.ISeq}
+  [^clojure.lang.IPersistentMap args
+   ^clojure.lang.ISeq arity]
+  (filter (partial find args) arity))
+
+(defn- arity-counter
+  "Returns a function that produces a number of common arguments for the given
+  pair (argument names as seq and default values as map) and named arguments
+  map given while creating function. The first argument is a switch. If it's
+  false or nil then defaults map is not used."
+  {:added "0.8"
+   :tag clojure.lang.IFn}
+  [^Boolean use-defaults
+   ^clojure.lang.IPersistentMap args]
+  (if use-defaults
+    (fn ^long [^clojure.lang.ISeq e]
+      (let [arit (first e)
+            defl (last e)]
+        (count
+         (if (nil? defl)
+           (intersect-args args arit)
+           (intersect-args (into defl args) arit)))))
+    (fn ^long [^clojure.lang.ISeq e]
+      (count (intersect-args args (first e))))))
+
+(defn- closest-pair
+  "Returns the one pair from pairs (seq of argument names, map of default
+  values for those names) that is closest to the given map of named
+  arguments (keys actually)."
   {:added "0.7"
    :tag clojure.lang.ISeq}
   ([^clojure.lang.IPersistentMap args
     ^clojure.lang.ISeq pairs]
-   (let [ari (closest-arity args pairs false)]
-     (if (<= (count args) (count-first ari))
-       ari
-       (closest-arity args pairs true))))
+   (let [fun (partial closest-pair args pairs)
+         ari (fun false)]
+     (if (> (count args) (count-first ari)) (fun true) ari)))
   ([^clojure.lang.IPersistentMap args
     ^clojure.lang.ISeq pairs
     ^Boolean use-defaults]
-   (let [base (set (keys args))
-         gens (if use-defaults
-                #(into (set (keys (last %))) base)
-                (constantly base))]
-     (->> pairs
-          (partition-all 2)
-          (group-by #(count (intersection (gens %) (set (first %)))))
-          (apply max-key first)
-          last
-          (apply min-key count-first)))))
+   (->> (partition-all 2 pairs)
+        (group-by (arity-counter use-defaults args))
+        (apply max-key first) last (apply min-key count-first))))
+
+(defn- args-picker
+  "Returns a function that for the given argument name tries to find its value
+  in a predefined map, passed as an argument when creating it. Additionally it
+  interpolates &rest special name by putting map with unhandled arguments or
+  nil as its value. If argument name is not found in args map it throws an
+  error."
+  {:added "0.8"
+   :tag clojure.lang.IFn}
+  [^clojure.lang.IPersistentMap args
+   ^clojure.lang.IPersistentMap unhandled-args]
+  (fn [arg-name]
+    (if-some [a (find args arg-name)]
+      (val a)
+      (if (= '&rest arg-name)
+        (not-empty unhandled-args)
+        (throw-arg "Argument is missing: " arg-name)))))
 
 (defn nameize*
   "Creates a wrapper that passes named arguments as positional arguments. Takes
-  a funtion object (f), a collection (preferably a vector) containing expected
+  a function object (f), a collection (preferably a vector) containing expected
   names of arguments (exp-args) expressed as keywords, symbols, strings or
   whatever suits you, and a map of default values for named
   arguments (defaults).
@@ -129,41 +170,38 @@
   Function returns a function object."
   {:added "0.6"
    :tag clojure.lang.Fn}
-  [^clojure.lang.Fn f & more]
+  [^clojure.lang.Fn f & arity-pairs]
   {:pre [(instance? clojure.lang.Fn f)]}
-  (validate-variadity (take-nth 2 more))
-  (validate-named-arities (take-nth 2 (next more)))
-  (fn [& {:as args}]
-    (validate-named-args args)
-    (let [arit (closest-arity args more)
-          expa (first arit)
-          defl (last arit)
-          args (into defl args)
-          argp (select-keys args expa)
-          argr (apply dissoc args (keys argp))
-          pckr #(if-some [ent (find args %)]
-                  (val ent)
-                  (if (= '&rest %)
-                    (not-empty argr)
-                    (throw-arg "No required key present: " %)))]
-      (->> arit
-           (take-nth 2)
+  (validate-variadity (take-nth 2 arity-pairs))
+  (validate-named-arities (take-nth 2 (next arity-pairs)))
+  (fn [& {:as args-given}]
+    (validate-named-args args-given)
+    (let [closest-pair  (closest-pair args-given arity-pairs)
+          args-expected (first closest-pair)
+          args-defaults (not-empty (last closest-pair))
+          args-to-use   (if (nil? args-defaults) args-given (into args-defaults (or args-given {})))
+          args-used     (select-keys args-given args-expected)
+          args-unused   (apply dissoc args-given (keys args-used))]
+      (->> (take-nth 2 closest-pair)
            (apply concat)
-           (map pckr)
+           (map (args-picker args-to-use args-unused))
            (apply f)))))
 
 (defn- keywordize-syms
   "Transforms all elements of linear or associative collection from symbols to
-  keywords (except &rest)."
+  keywords (except &rest). Returns nil values if generated collections are
+  empty."
   {:added "0.6"
    :arglists '([^clojure.lang.IPersistentVector v]
                [^clojure.lang.IPersistentMap m]
                [^clojure.lang.ISeq coll])}
   [coll]
-  (let [f #(if (symbol? %) (if (= '&rest %) ''&rest (keyword %)) %)]
-    (if (map? coll)
-      (reduce-kv #(assoc %1 (f %2) %3) (empty coll) coll)
-      (map f coll))))
+  (when-not (nil? coll)
+    (let [f #(if (symbol? %) (if (= '&rest %) ''&rest (keyword %)) %)]
+      (not-empty
+       (if (map? coll)
+         (reduce-kv #(assoc %1 (f %2) %3) (empty coll) coll)
+         (map f coll))))))
 
 (defmacro nameize
   "Creates a wrapper that passes named arguments as positional arguments. Takes
@@ -205,15 +243,15 @@
    (let [n (->> (list* exp-args defaults more)
                 (reduce (fn [acc e]
                           (if (and (vector? (first acc)) (not (map? e)))
-                            (recur (cons {} acc) e)
+                            (recur (cons nil acc) e)
                             (cons e acc))) ()))
-         n (->> (if (map? (first n)) n (cons {} n))
+         n (->> (if (map? (first n)) n (cons nil n))
                 (partition-all 2)
                 (reduce
                  (fn [acc [defl exp]]
                    (when-not (vector? exp)
                      (throw-arg "First element of a mapping pair must be a vector"))
-                   (when-not (map? defl)
+                   (when-not (or (nil? defl) (map? defl))
                      (throw-arg "Second element of a mapping pair must be a map"))
                    (->> acc
                         (cons (#'keywordize-syms defl))

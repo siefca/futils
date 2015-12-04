@@ -6,10 +6,13 @@
 ^{:refer futils.named/nameize :added "0.6"}
 (fact
 
+  (def nreduce (nameize reduce [f coll] [f val coll]))
+  (nreduce :f + :coll [1 2 3 4])         => 10
+  (nreduce :f + :coll [1 2 3 4] :val 2)  => 12
+  
   (def nfun (nameize #(list %1 %2) [a b]))
   (nfun :a 1 :b 2)
   => '(1 2)
-
   
   (def nfun (nameize (fn [& a] a) [a b] {:a 7 :b 8}))
   (nfun :b 2)
