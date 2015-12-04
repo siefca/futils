@@ -180,8 +180,8 @@
           args-expected (first closest-pair)
           args-defaults (not-empty (last closest-pair))
           args-to-use   (if (nil? args-defaults) args-given (into args-defaults (or args-given {})))
-          args-used     (select-keys args-given args-expected)
-          args-unused   (apply dissoc args-given (keys args-used))]
+          args-used     (select-keys args-to-use args-expected)
+          args-unused   (apply dissoc args-to-use (keys args-used))]
       (->> (take-nth 2 closest-pair)
            (apply concat)
            (map (args-picker args-to-use args-unused))
