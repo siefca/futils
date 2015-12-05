@@ -7,12 +7,12 @@
 (fact
 
   (argc (fn ([x y]) ([])))
-  => {:arities  #{0 2}
+  => {:arities  '(0 2)
       :engine   :jvm
       :variadic false}
   
   (argc (fn [a b & c]))
-  => {:arities  #{3}
+  => {:arities  '(3)
       :engine   :jvm
       :variadic true})
 
@@ -23,7 +23,7 @@
   (defn fun ([]) ([a]) ([a b]) ([a b & c]))
   
   (argc fun)
-  => {:arities  #{0 1 2 3}
+  => {:arities  '(0 1 2 3)
       :engine   :jvm
       :variadic true})
 
@@ -34,7 +34,7 @@
   (defmacro mak ([]) ([a]) ([a b]) ([a b & c]))
   
   (argc #'mak)
-  => {:arities  #{0 1 2 3}
+  => {:arities  '(0 1 2 3)
       :engine   :jvm
       :macro    true
       :variadic true})
@@ -45,7 +45,7 @@
   (defmacro mak ([]) ([a]))
   
   (argc mak)
-  => {:arities  #{0 1}
+  => {:arities  '(0 1)
       :engine   :jvm
       :macro    true
       :variadic false})

@@ -1,5 +1,15 @@
 # History of futils releases
 
+## 1.0.0 (2015-12-05)
+
+- Argument counting and relaxing functions are now using lazy sequences
+  instead of sets to work with arity counters (most of functions doesn't have
+  that much arities for sets to be computationally efficient). Changes affect:
+
+    - `futils.args/argc`,
+    - `futils.args/relax`,
+    - `futils.args/relax*`.
+
 ## 0.8.0 (2015-12-02)
 
 - Nameization does not use set operations to find matching arity.

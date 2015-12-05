@@ -52,7 +52,7 @@ Then require it in your program:
 Determines the number of arguments that the given function takes and returns
 a map containing these keys:
 
-* `:arities`  – a sorted set of argument counts for all arities,
+* `:arities`  – a sorted sequence of argument counts for all arities,
 * `:engine`:
   * `:clj` – if metadata were used to determine arities – DEPRECATED);
   * `:jvm` – if Java reflection methods were used to determine arities),
@@ -134,7 +134,7 @@ list or pads it with nil values if necessary.
 It takes 1 positional, obligatory argument, which should be a function (`f`) and
 two named, keyword arguments:
 
-* `:arities` – a sorted set of argument counts for all arities,
+* `:arities` – a sorted sequence of argument counts for all arities,
 * `:variadic` – a flag informing whether the widest arity is variadic.
 
 It also makes use of optional named arguments:
@@ -144,10 +144,10 @@ It also makes use of optional named arguments:
 * `:verbose` – a switch (defaults to `false`) that if set to `true`, causes wrapper
                to return a map containing additional information.
 
-To determine the number of arguments the nearest arity is picked up by matching
-a number of passed arguments to each number from a set (passed as `:arities`
-keyword argument). If there is no exact match then the next arity capable of
-handling all arguments is selected.
+To determine the number of arguments the nearest arity is picked up by
+matching a number of passed arguments to each number from a sequence (passed
+as `:arities` keyword argument). If there is no exact match then the next
+arity capable of handling all arguments is selected.
 
 If the expected number of arguments is lower than a number of arguments
 actually passed to a wrapper call, the exceeding ones will be ignored.
@@ -170,7 +170,7 @@ If the `:verbose` flag is set the result will be a map containing the following:
 * `:argc-padded`   – a number of arguments padded with `nil` values,
 * `:args-received` – arguments received by the wrapper,
 * `:args-sent`     – arguments passed to a function,
-* `:arities`       – a sorted set of argument counts for all arities,
+* `:arities`       – a sorted sequence of argument counts for all arities,
 * `:arity-matched` – an arity (as a number of arguments) that matched,
 * `:engine`        – a method used to check arities (`:clj` or `:jvm`),
 * `:result`        – a result of calling the original function,
@@ -245,9 +245,9 @@ arguments (e.g. `{:a 1 :b 2}`) by comparing declared argument names to key
 names. First it will try to match them without considering default values (if
 any) and in case there is no success (there is no declared arity that can be
 satisfied by the given arguments) matching is preformed again but with default
-arguments merged. From the resulting set of matching arity mappings the one
-with the least requirements is chosen (that has the lowest count of declared
-arguments).
+arguments merged. From the resulting collection of matching arity mappings the
+one element with the least requirements is chosen (that has the lowest count
+of declared arguments).
 
 The result is a function object."
 
@@ -295,9 +295,9 @@ given named arguments (e.g. `{:a 1 :b 2}`) by comparing declared argument
 names to key names. First it will try to match them without considering
 default values (if any) and in case there is no success (there is no declared
 arity that can be satisfied by the given arguments) matching is preformed
-again but with default arguments merged. From the resulting set of matching
-arity mappings the one with the least requirements is chosen (that has the
-lowest count of declared arguments).
+again but with default arguments merged. From the resulting collection of
+matching arity mappings the one element with the least requirements is
+chosen (that has the lowest count of declared arguments).
 
 A function object is returned."
 

@@ -108,7 +108,7 @@
       :argc-sent     1
       :args-received ()
       :args-sent     '(nil)
-      :arities       #{1 3}
+      :arities       '(1 3)
       :arity-matched 1
       :engine        :jvm
       :result        '(nil)
@@ -123,7 +123,7 @@
       :argc-sent     3
       :args-received '(1 2 3)
       :args-sent     '(1 2 3)
-      :arities       #{1 3}
+      :arities       '(1 3)
       :arity-matched 3
       :engine        :jvm
       :result        '(1 2 3)

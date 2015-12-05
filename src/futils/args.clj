@@ -115,11 +115,11 @@
 
 (def
   ^{:private true
-    :added "0.1"
+    :added "1.0"
     :tag clojure.lang.IPersistentVector
     :arglists '([^clojure.lang.IPersistentVector v])}
-  to-sorted-set
-  (juxt first (comp (partial into (sorted-set)) second)))
+  to-sorted-seq
+  (juxt first (comp sort second)))
 
 (defn- count-fn-args
   "Takes a sequence of vectors representing arities (first element represents
@@ -150,7 +150,7 @@
             meta :arglists
             count-fn-args
             gen-fargs-seq
-            to-sorted-set
+            to-sorted-seq
             gen-fargs-map
             (assoc :engine :clj))))
 
@@ -166,7 +166,7 @@
             take-fn-methods
             count-meth-args
             gen-fargs-seq
-            to-sorted-set
+            to-sorted-seq
             gen-fargs-map
             (assoc :engine :jvm))))
 
@@ -176,16 +176,15 @@
   {:added "0.2"
    :tag clojure.lang.IPersistentMap}
   [^clojure.lang.IPersistentMap a]
-  (when-let [ar a]
-    (-> ar
-        (update :arities (partial into (sorted-set) (map #(pos- % 2))))
-        (assoc  :macro true))))
+  (some-> a
+          (update :arities (partial map #(pos- % 2)))
+          (assoc  :macro true)))
 
 (defmacro argc
   "Determines the number of arguments that the given function takes and returns
   a map containing these keys:
 
-  :arities  – a sorted set of argument counts for all arities,
+  :arities  – a sorted sequence of argument counts for all arities,
   :engine   – :clj (if metadata were used to determine arities – DEPRECATED);
               :jvm (if Java reflection methods were used to determine arities),
   :macro    – a flag informing whether the given object is a macro,
@@ -210,6 +209,16 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Arguments relaxation.
+
+(defn- nearest-count
+  "Returns a number that is closest to n in the given sequence of sorted
+  numbers. If the exact match is not found it seeks for the first number that
+  is bigger than n. If there are no bigger nor exact numbers it returns the
+  last number from the given sequence."
+  {:added "1.0"}
+  [^long n
+   ^clojure.lang.ISeq nums]
+  (if-let [n (some #(when (<= n %) %) nums)] n (last nums)))
 
 (defmacro relax
   "Returns a variadic function object that calls the given function f, adjusting
@@ -293,7 +302,7 @@
   :argc-padded   – a number of arguments padded with nil values,
   :args-received – arguments received by the wrapper,
   :args-sent     – arguments passed to a function,
-  :arities       – a sorted set of argument counts for all arities,
+  :arities       – a sorted sequence of argument counts for all arities,
   :arity-matched – an arity (as a number of arguments) that matched,
   :engine        – a method used to check arities (:clj or :jvm),
   :result        – a result of calling the original function,
@@ -323,48 +332,48 @@
   {:added "0.6"
    :tag clojure.lang.Fn}
   [^clojure.lang.Fn f
-   & {:keys [^clojure.lang.IPersistentSet arities
-             ^clojure.lang.Fn              pad-fn
-             ^Boolean                    variadic
-             ^Boolean                     verbose
+   & {:keys [^clojure.lang.ISeq arities
+             ^clojure.lang.Fn   pad-fn
+             ^Boolean           variadic
+             ^Boolean           verbose
              pad-val]
       :as uber-args
       :or {verbose false, variadic false}}]
   {:pre [(instance? clojure.lang.Fn f) (not-empty arities)]}
-  (fn [& args]
-    (let [args (or args ())
-          carg (count args)
-          arit (if (sorted? arities) arities (apply sorted-set arities))
-          near (nearest-right arit carg)
-          vari (and variadic (= near (last arit)))
-          expe (if vari (dec near) near)
-          tken (if vari (max expe carg) expe)
-          padn (- expe carg)
-          pads (when (pos? padn)
-                 (if (nil? pad-fn)
-                   (repeat padn pad-val)
-                   (let [frargs {:args-received args
-                                 :arity-matched near
-                                 :variadic-used vari}
-                         prargs (if (zero? carg)
-                                  frargs
-                                  (assoc frargs :previous (last args)))]
-                     (frepeat padn pad-fn prargs))))
-          adja (take tken (concat args pads))
-          resu (apply f adja)]
-      (if verbose
-        (assoc uber-args
-               :args-received args
-               :argc-received carg
-               :args-sent     adja
-               :argc-sent     tken
-               :result        resu
-               :arity-matched near
-               :arities       arit
-               :variadic-used vari
-               :argc-padded   (non-negative padn)
-               :argc-cutted   (if vari 0 (non-negative (- padn))))
-        resu))))
+  (let [arit (if (sorted? arities) arities (sort arities))]
+    (fn [& args]
+      (let [args (or args ())
+            carg (count args)
+            near (nearest-count carg arit)
+            vari (and variadic (= near (last arit)))
+            expe (if vari (dec near) near)
+            tken (if vari (max expe carg) expe)
+            padn (- expe carg)
+            pads (when (pos? padn)
+                   (if (nil? pad-fn)
+                     (repeat padn pad-val)
+                     (let [frargs {:args-received args
+                                   :arity-matched near
+                                   :variadic-used vari}
+                           prargs (if (zero? carg)
+                                    frargs
+                                    (assoc frargs :previous (last args)))]
+                       (frepeat padn pad-fn prargs))))
+            adja (take tken (concat args pads))
+            resu (apply f adja)]
+        (if verbose
+          (assoc uber-args
+                 :args-received args
+                 :argc-received carg
+                 :args-sent     adja
+                 :argc-sent     tken
+                 :result        resu
+                 :arity-matched near
+                 :arities       arit
+                 :variadic-used vari
+                 :argc-padded   (non-negative padn)
+                 :argc-cutted   (if vari 0 (non-negative (- padn))))
+          resu)))))
 
 (def
   ^{:added "0.1"
