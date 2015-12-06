@@ -1,5 +1,9 @@
 # History of futils releases
 
+## 1.0.1 (2015-12-06)
+
+- Documentation updated.
+
 ## 1.0.0 (2015-12-05)
 
 - Argument counting and relaxing functions are now using lazy sequences

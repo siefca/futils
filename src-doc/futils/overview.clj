@@ -2,9 +2,8 @@
 
 [[:chapter {:title "Introduction"}]]
 
-"
-`futils` is a library that provides a set of forms that add some abstractions
-for managing functions in Clojure.
+" `futils` is a library that adds some abstractions for managing functions in
+Clojure.
 
 Currently provided macros and functions are:
 
@@ -49,7 +48,7 @@ or:
 "
 The `futils.args` namespace contains functions that provide positional
 arguments management, like counting or transforming other functions so they
-can accept variable number of arguments."
+can accept variable number of arguments (with optional padding)."
 
 [[:subsection {:title "argc" :tag "argc"}]]
 
@@ -59,18 +58,19 @@ can accept variable number of arguments."
 
 "
 Determines the number of arguments that the given function takes and returns
-a map containing these keys:
+a map containing the following keys:
 
-* `:arities`  – a sorted sequence of argument counts for all arities,
+* `:arities`  – a sorted sequence containing number of arguments for all arities,
 * `:engine`:
   * `:clj` – if metadata were used to determine arities – DEPRECATED);
   * `:jvm` – if Java reflection methods were used to determine arities),
 * `:macro`    – a flag informing whether the given object is a macro,
 * `:variadic` – a flag informing whether the widest arity is variadic.
 
-Variadic parameter is counted as one of the possible arguments.
+Variadic parameter is counted as one of the possible arguments (if present).
 
-The macro flag (`:macro`) is only present when macro was detected.
+The macro flag (`:macro` key with value `true`) is only present when macro was
+detected.
 
 If the given argument cannot be used to obtain a Var bound to a functon or
 a function object then it returns `nil`.
@@ -88,31 +88,29 @@ a function object then it returns `nil`.
   (futils.args/relax f & options))
 
 "
-
 Returns a variadic function object that calls the given function `f`,
-adjusting the number of passed arguments to nearest matching arity. It cuts
-argument list or pads it with `nil` values if necessary.
+adjusting the number of passed arguments to the nearest matching arity. It
+cuts argument list or pads it with `nil` values if necessary.
 
-The arities will be obtained from metadata (if the given object is a symbol
-bound to a `Var` or a `Var` object itself) or using JVM reflection calls to
-anonymous class representing a function object (in case of function object).
+The arities will be obtained using JVM reflection calls to anonymous class
+representing a function object.
 
 To determine the number of arguments the nearest arity is picked up by matching
 a number of passed arguments to number of arguments for each arity. If there is
 no exact match then the next arity capable of taking all arguments is selected.
 
-If the expected number of arguments is lower than a number of arguments
-actually passed to a wrapper call, the exceeding ones will be ignored.
+If the expected number of arguments is lower than the number of arguments
+actually passed to a wrapper call then the exceeding ones will be ignored.
 
-If the declared number of arguments that the original function expects is higher
-than a number of arguments really passed then `nil` values will be placed as extra
-arguments.
+If the detected number of arguments that the original function expects is
+higher than the number of arguments really passed then `nil` values (or other
+padding values) will be passed as extra arguments.
 
 When a variadic function is detected and its variadic arity is the closest to
 a number of arguments passed then all of them will be used during a function
 call (no argument will be ignored).
 
-It takes optional named arguments:
+The `relax` takes optional named arguments:
 
 * `:pad-fn` – a function that generates values for padding,
 * `:pad-val` – a value to use for padding instead of `nil`,
@@ -134,7 +132,6 @@ See [`relax*`](#relax*) for detailed descriptions of `:pad-fn` and
   (futils.args/relax* f & options))
 
 "
-
 Returns a variadic function object that calls the given function, adjusting
 the number of passed arguments to nearest matching arity. It cuts argument
 list or pads it with nil values if necessary.
@@ -155,22 +152,23 @@ It also makes use of optional named arguments:
 To determine the number of arguments the nearest arity is picked up by
 matching a number of passed arguments to each number from a sequence (passed
 as `:arities` keyword argument). If there is no exact match then the next
-arity capable of handling all arguments is selected.
+arity capable of handling all arguments is chosen.
 
 If the expected number of arguments is lower than a number of arguments
 actually passed to a wrapper call, the exceeding ones will be ignored.
 
-If the declared number of arguments that the original function expects is higher
-than a number of arguments really passed then nil values will be placed as extra
-arguments.
+If the declared number of arguments that the original function expects is
+higher than the number of arguments really passed then `nil` values (or other
+padding values) will be placed as extra arguments.
 
 When a variadic function is detected and its variadic arity is the closest to
-a number of arguments passed then all of them will be used to call a function."
+the number of passed arguments then all of them will be used."
 
 [[:subsubsection {:title "Verbose mode" :tag "relax*-verbose-mode"}]]
 
 "
-If the `:verbose` flag is set the result will be a map containing the following:
+If the `:verbose` flag is set then the result will be a map containing the
+following:
 
 * `:argc-received` – a number of arguments received by the wrapper,
 * `:argc-sent`     – a number of arguments passed to a function,
@@ -216,9 +214,8 @@ make easy checks if there would be some previous value (`nil` is ambiguous)."
 [[:section {:title "futils.named" :tag "futils.named"}]]
 
 "
-The `futils.named` namespace contains functions that are able to transform
-functions that take positional arguments into functions that can handle named
-arguments."
+The `futils.named` namespace contains functions transforming functions taking
+positional arguments into functions that can handle named arguments."
 
 [[:subsection {:title "nameize" :tag "nameize"}]]
 
@@ -228,27 +225,27 @@ arguments."
   (futils.named/nameize f [names] {defaults})
   (futils.named/nameize f arity-mappings…))
 
-"where `arity-mappings` is a pair expressed as: `[names] {defaults}` or
+"where `arity-mappings…` are pairs expressed as: `[names] {defaults}` or
 just `[names]`."
 
 "
-Creates a wrapper that passes named arguments as positional arguments. Takes
-a funtion object (`f`), a vector S-expression containing names of expected
-arguments (`names`) expressed as keywords, symbols, strings or whatever suits
-you, and an optional map S-expression of default values for named
-arguments (`defaults`).
+The macro creates a wrapper that passes named arguments as positional
+arguments. It takes a funtion object (`f`), a vector S-expression containing
+names of expected arguments (`names` – expressed as keywords, symbols, strings
+or other objects) and an optional map S-expression with default values for
+named arguments (`defaults`).
 
 Since version 0.7.0 it accepts multiple arity mappings expressed as
-pairs consisting of vectors of argument names and maps of default values for
-all or some of names.
+pairs consisting of argument name vectors and maps of default values (for
+all or some of the names).
 
-The order of names in a vector is important. Each given name will become a key
+The order of names in a vector is important. Each name will become a key
 of named argument which value will be passed to the given function on the same
 position as in the vector.
 
-If unquoted symbol is given in a vector or in a map, it will be transformed to
-a keyword of the same name. Use quoted symbols if you want to use symbols as
-keys of named arguments.
+If unquoted symbol is given in a vector or in a map, it will be transformed
+into a keyword of the same name. Use quoted symbols if you want to use symbols
+as keys of named arguments.
 
 If the `&rest` special symbol is placed in a vector then the passed value that
 corresponds to its position will be a map containing all named arguments that
@@ -257,12 +254,12 @@ weren't handled. If there are none, `nil` value is passed.
 The macro is capable of handling multiple arities. In such case the declared
 arities (e.g. `[:a :b]` `[:a :b :c]`) will be matched against the given named
 arguments (e.g. `{:a 1 :b 2}`) by comparing declared argument names to key
-names. First it will try to match them without considering default values (if
-any) and in case there is no success (there is no declared arity that can be
-satisfied by the given arguments) matching is preformed again but with default
-arguments merged. From the resulting collection of matching arity mappings the
-one element with the least requirements is chosen (that has the lowest count
-of declared arguments).
+names. Firstly it will try to match them without considering default
+values (if any) and in case of no success (when there is no declared arity
+that can be satisfied by the given arguments) matching is preformed again but
+with default arguments merged. From the resulting collection of matching arity
+mappings the one element with the least requirements is chosen (that has the
+lowest count of declared arguments).
 
 The result is a function object."
 
@@ -283,32 +280,33 @@ The result is a function object."
 `names`."
 
 "
-Creates a wrapper that passes named arguments as positional arguments. Takes
-a funtion object (`f`), a collection (preferably a vector) containing expected
-names of arguments (`names`) expressed as keywords, symbols, strings or whatever
-suits you, and a map of default values for named arguments (`defaults`).
+The function creates a wrapper that passes named arguments as positional
+arguments. It takes a funtion object (`f`), a vector S-expression containing
+names of expected arguments (`names` – expressed as keywords, symbols, strings
+or other objects) and an optional map S-expression with default values for
+named arguments (`defaults`).
 
 Since version 0.7.0 it accepts multiple arity mappings expressed as
-pairs consisting of vectors of argument names and maps of default values for
-all or some of names.
+pairs consisting of argument name vectors and maps of default values (for
+all or some of the names).
 
-The order of names in a vector is important. Each given name will become a key of
-named argument which value will be passed to the given function on the same
+The order of names in a vector is important. Each name will become a key
+of named argument which value will be passed to the given function on the same
 position as in the vector.
 
-If unquoted symbol is given in a vector or in a map, it will be transformed to
-a keyword of the same name. Use quoted symbols if you want to use symbols as
-keys of named arguments.
+If unquoted symbol is given in a vector or in a map, it will be transformed
+into a keyword of the same name. Use quoted symbols if you want to use symbols
+as keys of named arguments.
 
-If the `&rest` special symbol is placed in `exp-args` vector then the passed
-value that corresponds to its position will be a map containing all named
-arguments that weren't handled. If there are none, nil value is passed.
+If the `&rest` special symbol is placed in a vector then the passed value that
+corresponds to its position will be a map containing all named arguments that
+weren't handled. If there are none, `nil` value is passed.
 
 The function is capable of handling multiple arities. In such case the
 declared arities (e.g. `[:a :b]` `[:a :b :c]`) will be matched against the
 given named arguments (e.g. `{:a 1 :b 2}`) by comparing declared argument
-names to key names. First it will try to match them without considering
-default values (if any) and in case there is no success (there is no declared
+names to key names. Firstly it will try to match them without considering
+default values (if any) and in case of no success (when there is no declared
 arity that can be satisfied by the given arguments) matching is preformed
 again but with default arguments merged. From the resulting collection of
 matching arity mappings the one element with the least requirements is

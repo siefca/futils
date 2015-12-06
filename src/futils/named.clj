@@ -139,35 +139,37 @@
         (throw-arg "Argument is missing: " arg-name)))))
 
 (defn nameize*
-  "Creates a wrapper that passes named arguments as positional arguments. Takes
-  a function object (f), a collection (preferably a vector) containing expected
-  names of arguments (exp-args) expressed as keywords, symbols, strings or
-  whatever suits you, and a map of default values for named
-  arguments (defaults).
+  "Creates a wrapper that passes named arguments as positional arguments. It
+  takes a funtion object (f), a vector S-expression containing names of
+  expected arguments (names – expressed as keywords, symbols, strings or
+  other objects) and an optional map S-expression with default values for
+  named arguments (defaults).
 
-  Since version 0.7.0 it accepts multiple arity mappings expressed as pairs
-  consisting of vectors of argument names and maps of default values for all
-  or some of names.
+  Since version 0.7.0 it accepts multiple arity mappings expressed as
+  pairs consisting of argument name vectors and maps of default values (for
+  all or some of the names).
 
-  The order of names in a collection is important. Each given name will become
-  a key of named argument which value will be passed to the given function on
-  the same position as its position in the vector.
+  The order of names in a vector is important. Each name will become a key
+  of named argument which value will be passed to the given function on the same
+  position as in the vector.
 
-  If the &rest special symbol is placed in exp-args vector then the passed
-  value that corresponds to its position will be a map containing all named
-  arguments that weren't handled. If there are none, nil value is passed.
+  If unquoted symbol is given in a vector or in a map, it will be transformed
+  into a keyword of the same name. Use quoted symbols if you want to use symbols
+  as keys of named arguments.
 
-  The function is capable of handling multiple arities. In such case the
-  declared arities (e.g. [:a :b] [:a :b :c]) will be matched against the given
-  named arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to
-  key names. First it will try to match them without considering default
-  values (if any) and in case there is no success (there is no declared arity
-  that can be satisfied by the given arguments) matching is preformed again
-  but with default arguments merged. From the resulting set of matching arity
-  mappings the one with the least requirements is chosen (that has the lowest
-  count of declared arguments).
+  If the &rest special symbol is placed in a vector then the passed value that
+  corresponds to its position will be a map containing all named arguments that
+  weren't handled. If there are none, nil value is passed.
 
-  Function returns a function object."
+  The function is capable of handling multiple arities. In such case the declared
+  arities (e.g. [:a :b] [:a :b :c]) will be matched against the given named
+  arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to key
+  names. Firstly it will try to match them without considering default
+  values (if any) and in case of no success (when there is no declared arity
+  that can be satisfied by the given arguments) matching is preformed again but
+  with default arguments merged. From the resulting collection of matching arity
+  mappings the one element with the least requirements is chosen (that has the
+  lowest count of declared arguments)."
   {:added "0.6"
    :tag clojure.lang.Fn}
   [^clojure.lang.Fn f & arity-pairs]
@@ -204,39 +206,38 @@
          (map f coll))))))
 
 (defmacro nameize
-  "Creates a wrapper that passes named arguments as positional arguments. Takes
-  a function object (f), a vector S-expression containing names of expected
-  arguments (exp-args) expressed as keywords, symbols, strings or whatever suits
-  you, and an optional map S-expression of default values for named
-  arguments (defaults).
+  "Creates a wrapper that passes named arguments as positional arguments. It
+  takes a funtion object (f), a vector S-expression containing names of
+  expected arguments (names – expressed as keywords, symbols, strings or
+  other objects) and an optional map S-expression with default values for
+  named arguments (defaults).
 
-  Since version 0.7.0 it accepts multiple arity mappings expressed as pairs
-  consisting of vectors of argument names and maps of default values for all
-  or some of names.
+  Since version 0.7.0 it accepts multiple arity mappings expressed as
+  pairs consisting of argument name vectors and maps of default values (for
+  all or some of the names).
 
-  The order of names in a vector is important. Each given name will become a key
+  The order of names in a vector is important. Each name will become a key
   of named argument which value will be passed to the given function on the same
   position as in the vector.
 
-  If unquoted symbol is given in a vector or in a map, it will be transformed to
-  a keyword of the same name. Use quoted symbols if you want to use symbols as
-  keys of named arguments.
-
-  The macro is capable of handling multiple arities. In such case the declared
-  arities (e.g. [:a :b] [:a :b :c]) will be matched against the given named
-  arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to key
-  names. First it will try to match them without considering default
-  values (if any) and in case there is no success (there is no declared arity
-  that can be satisfied by the given arguments) matching is preformed again
-  but with default arguments merged. From the resulting set of matching arity
-  mappings the one with the least requirements is chosen (that has the lowest
-  count of declared arguments).
+  If unquoted symbol is given in a vector or in a map, it will be transformed
+  into a keyword of the same name. Use quoted symbols if you want to use symbols
+  as keys of named arguments.
 
   If the &rest special symbol is placed in a vector then the passed value that
   corresponds to its position will be a map containing all named arguments that
   weren't handled. If there are none, nil value is passed.
 
-  The result is a function object."
+  The macro is capable of handling multiple arities. In such case the declared
+  arities (e.g. [:a :b] [:a :b :c]) will be matched against the given named
+  arguments (e.g. {:a 1 :b 2}) by comparing declared argument names to key
+  names. Firstly it will try to match them without considering default
+  values (if any) and in case of no success (when there is no declared arity
+  that can be satisfied by the given arguments) matching is preformed again but
+  with default arguments merged. From the resulting collection of matching arity
+  mappings the one element with the least requirements is chosen (that has the
+  lowest count of declared arguments).
+  "
   {:added "0.6"}
   ([f exp-args] `(nameize ~f ~exp-args {}))
   ([f exp-args defaults & more]

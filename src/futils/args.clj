@@ -140,8 +140,8 @@
 
 (defn argc-clj
   "Uses the given Var's :arglists metadata value to determine the number of
-  arguments taken by a function that the Var is bound to. See (doc argc)
-  for more specific documentation."
+  arguments taken by a function that the Var is bound to. See
+  (doc futils.args/argc) for more specific documentation."
   {:added "0.1"
    :tag clojure.lang.IPersistentMap}
   [^clojure.lang.Var varobj]
@@ -156,7 +156,7 @@
 
 (defn argc-jvm
   "Uses JVM reflection calls to determine number of arguments the given function
-  takes. Returns a map. See (doc argc) for more specific documentation."
+  takes. Returns a map. See (doc futils.args/argc) for more specific documentation."
   {:added "0.1"
    :tag clojure.lang.IPersistentMap}
   [^clojure.lang.Fn f]
@@ -221,38 +221,37 @@
   (if-let [n (some #(when (<= n %) %) nums)] n (last nums)))
 
 (defmacro relax
-  "Returns a variadic function object that calls the given function f, adjusting
-  the number of passed arguments to a nearest arity of f. It cuts argument list
-  or pads it with nil values if necessary.
+  "Returns a variadic function object that calls the given function f,
+  adjusting the number of passed arguments to the nearest matching arity. It
+  cuts argument list or pads it with nil values if necessary.
 
-  The arities will be obtained from metadata (if the given object is a symbol
-  bound to a Var or a Var object itself) or using JVM reflection calls to
-  anonymous class representing a function object (in case of function object).
+  The arities will be obtained using JVM reflection calls to anonymous class
+  representing a function object.
 
-  To determine the number of arguments the nearest arity is picked up by
-  matching a number of passed arguments to number of arguments for each arity.
-  If there is no exact match then the next arity capable of taking all arguments
-  is selected.
+  To determine the number of arguments the nearest arity is picked up by matching
+  a number of passed arguments to number of arguments for each arity. If there is
+  no exact match then the next arity capable of taking all arguments is selected.
 
-  If the expected number of arguments is lower than a number of arguments
-  actually passed to a wrapper call, the exceeding ones will be ignored.
+  If the expected number of arguments is lower than the number of arguments
+  actually passed to a wrapper call then the exceeding ones will be ignored.
 
-  If the declared number of arguments that the original function expects is
-  higher than a number of arguments really passed then nil values will be placed
-  as extra arguments.
+  If the detected number of arguments that the original function expects is
+  higher than the number of arguments really passed then nil values (or other
+  padding values) will be passed as extra arguments.
 
   When a variadic function is detected and its variadic arity is the closest to
   a number of arguments passed then all of them will be used during a function
   call (no argument will be ignored).
 
-  It takes optional named arguments:
+  The relax takes optional named arguments:
 
-  :pad-fn   – a function that generates values for padding,
-  :pad-val  – a value to use for padding instead of nil,
-  :verbose  – a switch (defaults to false) that if set to true causes wrapper to
-              return a map containing additional information.
+  :pad-fn  – a function that generates values for padding,
+  :pad-val – a value to use for padding instead of nil,
+  :verbose – a switch (defaults to false) that if set to true causes
+               wrapper to return a map containing additional information.
 
-  See (doc relax*) for more information about :pad-fn and :verbose options."
+  See (doc futils.args/relax*) for more information about :pad-fn
+  and :verbose options."
   {:added "0.1"
    :tag clojure.lang.Fn}
   [f & {:as options}]
@@ -262,37 +261,36 @@
 
 (defn relax*
   "Returns a variadic function object that calls the given function, adjusting
-  the number of passed arguments to a nearest arity. It cuts argument list or
-  pads it with nil values if necessary.
+  the number of passed arguments to nearest matching arity. It cuts argument
+  list or pads it with nil values if necessary.
 
   It takes 1 positional, obligatory argument, which should be a function (f) and
   two named, keyword arguments:
 
-  :arities  – a sorted set of argument counts for all arities,
+  :arities  – a sorted sequence of argument counts for all arities,
   :variadic – a flag informing whether the widest arity is variadic.
 
   It also makes use of optional named arguments:
 
-  :pad-fn   – a function that generates values for padding,
-  :pad-val  – a value to use for padding instead of nil,
-  :verbose  – a switch (defaults to false) that if set to true causes wrapper
-              to return a map containing additional information.
+  :pad-fn  – a function that generates values for padding,
+  :pad-val – a value to use for padding instead of nil,
+  :verbose – a switch (defaults to false) that if set to true, causes wrapper
+               to return a map containing additional information.
 
   To determine the number of arguments the nearest arity is picked up by
-  matching a number of passed arguments to each number from a set (passed
-  as :arities keyword argument). If there is no exact match then the next arity
-  capable of taking all arguments is selected.
+  matching a number of passed arguments to each number from a sequence (passed
+  as :arities keyword argument). If there is no exact match then the next
+  arity capable of handling all arguments is chosen.
 
   If the expected number of arguments is lower than a number of arguments
   actually passed to a wrapper call, the exceeding ones will be ignored.
 
   If the declared number of arguments that the original function expects is
-  higher than a number of arguments really passed then nil values will be placed
-  as extra arguments.
+  higher than the number of arguments really passed then nil values (or other
+  padding values) will be placed as extra arguments.
 
   When a variadic function is detected and its variadic arity is the closest to
-  a number of arguments passed then all of them will be used to call
-  a function.
+  the number of passed arguments then all of them will be used.
 
   If the :verbose flag is set the result will be a map containing the following:
 
@@ -322,13 +320,14 @@
                    argument when padding function is called for the first time).
 
   Values associated with :iteration and :previous keys will change during each
-  call, rest of them will remain constant.
+  call, rest of them will remain constant. See (doc futils.utils/frepeat)
+  for more info.
 
   If there is no last argument processed at a time when f is called for the
-  first time (because no arguments were passed), the :previous key is not added
-  to a passed map. That allows to use a default value in a binding map of f or
-  to make easy checks if there would be some previous value (nil is too
-  ambiguous)."
+  first time (because no arguments were passed), the :previous key is not
+  added to a passed map. That allows to use a default value in a binding map
+  of f or to make easy checks if there would be some previous value (nil is
+  too ambiguous)."
   {:added "0.6"
    :tag clojure.lang.Fn}
   [^clojure.lang.Fn f
