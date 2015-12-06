@@ -6,6 +6,7 @@
 ^{:refer futils.args/relax :added "0.1"}
 (fact
 
+  ;; multi-arity function
   (defn fun
     ([a b]   (list a b))
     ([a b c] (list a b c)))
@@ -18,40 +19,13 @@
   (relaxed 1 2 3)   => '(1 2 3)
   (relaxed 1 2 3 4) => '(1 2 3)
   
+  ;; Var object that refers to a function
   (def relaxed (relax #'fun))
   
   (relaxed)         => '(nil nil)
-  (relaxed 1 2 3 4) => '(1 2 3))
-
-[[{:tag "relax-usage-variadic" :title "Handling variadic arguments by <code>relax</code>"}]]
-^{:refer futils.args/relax :added "0.1"}
-(fact
-
-  (defn fun
-    ([a] (list a))
-    ([a b & more] (list* a b more)))
+  (relaxed 1 2 3 4) => '(1 2 3)
   
-  (def relaxed (relax fun))
-  
-  (relaxed)         => '(nil)      ; matched arity: [a]
-  (relaxed 1)       => '(1)        ; matched arity: [a]
-  (relaxed 1 2)     => '(1 2)      ; matched arity: [a b & more]
-  (relaxed 1 2 3)   => '(1 2 3)    ; matched arity: [a b & more]
-  (relaxed 1 2 3 4) => '(1 2 3 4)  ; matched arity: [a b & more]
-  
-  (defn fun2 [& more] more)
-  (def relaxed (relax fun2))
-  
-  (relaxed)         => nil
-  (relaxed 1)       => '(1)
-  (relaxed 1 2)     => '(1 2)
-  (relaxed 1 2 3)   => '(1 2 3)
-  (relaxed 1 2 3 4) => '(1 2 3 4))
-
-[[{:tag "relax-usage-anonymous" :title "Using <code>relax</code> on anonymous functions"}]]
-^{:refer futils.args/relax :added "0.1"}
-(fact
-
+  ;; anonymous function
   (def relaxed
     (relax (fn
              ([a]     (list a))
@@ -62,24 +36,44 @@
   (relaxed 1 2)     => '(1 2 nil)  ; matched arity: [a b c]
   (relaxed 1 2 3)   => '(1 2 3)    ; matched arity: [a b c]
   (relaxed 1 2 3 4) => '(1 2 3)    ; matched arity: [a b c]
-  )
+  
+  ;; multi-arity function with variadic argument
+  (defn fun
+    ([a] (list a))
+    ([a b & more] (list* a b more)))
 
-[[{:tag "relax-usage-padding-val" :title "Custom padding value"}]]
+  (def relaxed (relax fun))
+
+  (relaxed)         => '(nil)      ; matched arity: [a]
+  (relaxed 1)       => '(1)        ; matched arity: [a]
+  (relaxed 1 2)     => '(1 2)      ; matched arity: [a b & more]
+  (relaxed 1 2 3)   => '(1 2 3)    ; matched arity: [a b & more]
+  (relaxed 1 2 3 4) => '(1 2 3 4)  ; matched arity: [a b & more]
+  
+  ;; single-arity function with variadic argument
+  (defn fun2 [& more] more)
+  (def relaxed (relax fun2))
+  
+  (relaxed)         => nil
+  (relaxed 1)       => '(1)
+  (relaxed 1 2)     => '(1 2)
+  (relaxed 1 2 3)   => '(1 2 3)
+  (relaxed 1 2 3 4) => '(1 2 3 4))
+
+[[{:tag "relax-usage-padding-val" :title "Custom padding"}]]
 ^{:refer futils.args/relax :added "0.1"}
 (fact
 
+  ;; padding value as :pad-val
   (def relaxed (relax #(list %1 %2 %3) :pad-val :nic))
   
   (relaxed)           => '(:nic :nic :nic)
   (relaxed 1)         => '(1 :nic :nic)
   (relaxed 1 2)       => '(1 2 :nic)
   (relaxed 1 2 3)     => '(1 2 3)
-  (relaxed 1 2 3 4)   => '(1 2 3))
-
-[[{:tag "relax-usage-padding-fn" :title "Custom padding function"}]]
-^{:refer futils.args/relax :added "0.1"}
-(fact
-
+  (relaxed 1 2 3 4)   => '(1 2 3)
+  
+  ;; padding function
   (defn padder
     [& {:keys [previous] :or {previous -1}}]
     (inc previous))
