@@ -36,6 +36,62 @@ Full documentation with usage examples is available on:
 
 * https://randomseed.pl/software/futils/
 
+## Sneak peeks
+
+```clojure
+(require 'futils.args)
+(require 'futils.named)
+
+;; counting arities
+;;
+(futils.args/argc reduce)
+; => {:arities (2 3)
+      :engine :jvm
+      :variadic false}
+
+;; relaxing arities
+;;
+(def f (futils.args/relax reduce))
+(f + 0 [1 2 3 4] :ignored :args)
+; => 10
+
+(def f (futils.args/relax #(vector %1 %2)))
+(f 1)
+; => [1 nil]
+
+(def f (futils.args/relax #(vector %1 %2) :verbose true))
+(f 1)
+; => {:argc-cutted 0
+; =>  :argc-padded 1
+; =>  :argc-received 1
+; =>  :argc-sent 2
+; =>  :args-received (1)
+; =>  :args-sent (1 nil)
+; =>  :arities (2)
+; =>  :arity-matched 2
+; =>  :engine :jvm
+; =>  :result [1 nil]
+; =>  :variadic false
+; =>  :variadic-used false
+; =>  :verbose true}
+
+;; nameization
+;;
+(def f (futils.named/nameize
+        reduce
+        [f coll]
+        [f val coll]))
+
+(f :f +
+   :coll [1 1 2 3])
+; => 7
+
+(f :f +
+   :val 1
+   :coll [1 1 2 3])
+; => 8
+```
+
 ## Examples
 
 Examples can be found in the documentation or in test files located under
