@@ -7,8 +7,11 @@
 
   (:refer-clojure :only [fn defn if-let when cond and or])
   (:require [clojure.core :as c]
+            [futils.core  :refer :all]
             [futils.named :refer :all]
             [futils.utils :refer :all]))
+
+(futils.core/init)
 
 (defn reduce
   {:added "0.8"}

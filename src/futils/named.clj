@@ -5,8 +5,10 @@
 
     futils.named
 
-  (:require [futils.utils :refer :all]
-            [clojure.set  :refer [intersection]]))
+  (:require [futils.core  :refer :all]
+            [futils.utils :refer :all]))
+
+(futils.core/init)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Nameization support.

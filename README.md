@@ -8,11 +8,11 @@ arguments, transforming positional-based arities into named ones and so on.
 
 ## Installation
 
-The current release is 1.0.1. To use futils in your project, add the following
+The current release is 1.0.2. To use futils in your project, add the following
 to the `dependencies` section of `project.clj`:
 
 ```
-[pl.randomseed/futils "1.0.1"]
+[pl.randomseed/futils "1.0.2"]
 ```
 
 ## Components

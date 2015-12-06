@@ -1,5 +1,9 @@
 # History of futils releases
 
+## 1.0.2 (2015-12-06)
+
+- Added initialization function and dev-mode detection.
+
 ## 1.0.1 (2015-12-06)
 
 - Documentation updated.

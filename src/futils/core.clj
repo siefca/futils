@@ -5,4 +5,9 @@
 
     futils.core
 
-  (:require [futils.utils :refer :all]))
+  (:require [environ.core :refer [env]]))
+
+(defn init
+  []
+  (when (env :dev-mode)
+    (set! *warn-on-reflection* true)))

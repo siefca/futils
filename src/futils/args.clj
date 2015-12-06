@@ -5,7 +5,10 @@
 
     futils.args
 
-  (:require [futils.utils :refer :all]))
+  (:require [futils.core  :refer :all]
+            [futils.utils :refer :all]))
+
+(futils.core/init)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Counting function arguments.

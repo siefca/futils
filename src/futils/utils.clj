@@ -3,7 +3,11 @@
     ^{:doc    "futils library, utility functions."
       :author "Paweł Wilk"}
 
-    futils.utils)
+    futils.utils
+
+  (:require [futils.core :refer :all]))
+
+(futils.core/init)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simplifiers.
