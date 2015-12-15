@@ -11,7 +11,7 @@
 (futils.core/init)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Nameization support.
+;; Nameization.
 
 (def
   ^{:private true
@@ -260,3 +260,115 @@
                         (cons (#'keywordize-syms defl))
                         (cons (cons 'list (#'keywordize-syms exp))))) ()))]
      `(nameize* ~f ~@n))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Composition of functions with named arguments.
+
+(def ^{:private true
+       :added "1.2"
+       :const true
+       :tag clojure.lang.IPersistentMap}
+  comp-defaults
+  {:merge-args false
+   :map-output false})
+
+(defn- comp-map-results
+  "Transforms the structure given as r into a named arguments list according
+  to rules given as the opts map and optionally merging them with the args
+  map."
+  {:added "1.2"}
+  ([r
+    ^clojure.lang.IPersistentMap args
+    ^clojure.lang.IPersistentMap opts]
+   (let [ma (:merge-args opts)
+         mo (:map-output opts)]
+     (as-> r $
+       (if (or mo (not (map? $))) {(if (false? mo) :out mo) $} $)
+       (if ma (if (true? ma) (merge args $) (assoc $ ma args)) $)
+       (mapcat identity $)))))
+
+(defn- comp-prep-opts
+  "Creates a function that prepares options for comp-map-results."
+  {:added "1.2"
+   :tag clojure.lang.IFn}
+  [^clojure.lang.IPersistentMap defl-opts]
+  (let [defl-opts (merge comp-defaults defl-opts)]
+    (fn [^clojure.lang.IPersistentMap opts]
+      (as-> opts $
+        (if (map? $) $ {:f $})
+        (merge defl-opts $)
+        (update $ :map-output #(if (true? %) :out (or % false)))
+        (update $ :merge-args #(or % false))))))
+
+(defn- comp-core
+  "Composes functions with named arguments represented as maps where :f entry
+  is a function and other are options that control the way return values are
+  structured. It also accepts functions passed directly as its first argument.
+  Returns function object."
+  {:added "1.2"
+   :arglists '([]
+               [^clojure.lang.IFn f]
+               [^clojure.lang.IPersistentMap m]
+               [^clojure.lang.IFn a, ^clojure.lang.IPersistentMap b]
+               [^clojure.lang.IPersistentMap a, ^clojure.lang.IPersistentMap b])}
+  (^clojure.lang.IFn [] identity)
+  (^clojure.lang.IFn [a]
+   (let [fa (if (map? a) (:f a) a)
+         oa (if (map? a) (dissoc a :f) nil)]
+     (fn
+       ([]            (comp-map-results (fa) nil oa))
+       ([k v]         (comp-map-results (fa k v) {k v} oa))
+       ([k v z x]     (comp-map-results (fa k v z x) {k v z x} oa))
+       ([k v z x c v] (comp-map-results (fa k v z x c v) {k v z x c v} oa))
+       ([k v z x c v & args]
+        (let [args (list* k v z x c v args)
+              fbrt (comp-map-results (apply fa args) (apply array-map args) oa)]
+          (apply fa fbrt))))))
+  (^clojure.lang.IFn [a, ^clojure.lang.IPersistentMap b]
+   (let [fa (if (map? a) (:f a) a)
+         fb (:f b)
+         ob (dissoc b :f)]
+     (fn
+       ([]            (apply fa (comp-map-results (fb) nil ob)))
+       ([k v]         (apply fa (comp-map-results (fb k v) {k v} ob)))
+       ([k v z x]     (apply fa (comp-map-results (fb k v z x) {k v z x} ob)))
+       ([k v z x c v] (apply fa (comp-map-results (fb k v z x c v) {k v z x c v} ob)))
+       ([k v z x c v & args]
+        (let [args (list* k v z x c v args)
+              fbrt (comp-map-results (apply fb args) (apply array-map args) ob)]
+          (apply fa fbrt)))))))
+
+(defn- comp-parse-args
+  "Parses arguments for comp and returns a sequence of maps describing
+  functions and options that control the way their return values are
+  transformed and structured."
+  {:added "1.2"
+   :tag clojure.lang.ISeq}
+  [args]
+  (let [fargs (first args)
+        largs  (last args)
+        ff (if (fn? fargs) fargs (:f fargs))
+        fl (if (fn? largs) largs (:f largs))
+        [fns opts] (if ff
+                     (if fl [args nil] [(butlast args) largs])
+                     (if fl [(next args) fargs] [(list identity) (merge fargs largs)]))
+        opts (comp-prep-opts opts)]
+    (map opts fns)))
+
+(defn comp
+  {:added "1.2"}
+  (^clojure.lang.IFn [] identity)
+  (^clojure.lang.IFn [f] (comp-core (first (comp-parse-args [f]))))
+  (^clojure.lang.IFn [f & more]
+   (let [args (comp-parse-args (cons f more))]
+     (if (<= (count args) 1)
+       (comp-core (first args))
+       (reduce comp-core args)))))
+
+;; todo: detect how many funcs is really there and in case of just one.. (reduce calls it!)
+
+(defn comp-explain
+  {:added "1.2"}
+  (^clojure.lang.IFn [] #'identity)
+  (^clojure.lang.IFn [f] (first (comp-parse-args [f])))
+  (^clojure.lang.IFn [f & more] (comp-parse-args (cons f more))))
