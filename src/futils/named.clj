@@ -5,8 +5,13 @@
 
     futils.named
 
-  (:require [futils.core  :refer :all]
-            [futils.utils :refer :all]))
+  (:refer-clojure :rename {apply    c-apply
+                           comp     c-comp
+                           identity c-identity})
+
+  (:require [futils.core :refer :all]
+            [futils.utils]
+            [clojure.set]))
 
 (futils.core/init)
 
@@ -15,15 +20,16 @@
 
 (def
   ^{:private true
-    :added "0.6"}
+    :added "0.6"
+    :tag clojure.lang.IPersistentMap}
   special-plus
-  (into {'&rest true 'nil true} special-symbols))
+  (into {'&rest true 'nil true} futils.utils/special-symbols))
 
 (defn- throw-arg
   {:added "0.7"
    :tag nil}
   [& msgs]
-  (throw (IllegalArgumentException. ^String (apply str msgs))))
+  (throw (IllegalArgumentException. ^String (c-apply str msgs))))
 
 (defn- unicompare
   {:added "0.7"
@@ -38,9 +44,9 @@
   {:added "0.7"
    :tag nil}
   [^clojure.lang.ISeq arities]
-  (when-not (apply distinct? (map count arities))
+  (when-not (c-apply distinct? (map count arities))
     (throw-arg "All declared arities should have different argument counts"))
-  (when-not (apply distinct? (map #(sort unicompare %) arities))
+  (when-not (c-apply distinct? (map #(sort unicompare %) arities))
     (throw-arg "Each declared arity should have at least one unique argument")))
 
 (defn- validate-args
@@ -66,7 +72,7 @@
     :private true
     :tag nil
     :arglists '([^clojure.lang.IPersistentMap m])}
-  (comp validate-args (partial keys)))
+  (c-comp validate-args (partial keys)))
 
 (def validate-named-arities
   "Validates a sequence of named arguments expressed as maps."
@@ -74,7 +80,7 @@
     :private true
     :tag nil
     :arglists '([^clojure.lang.ISeq coll])}
-  (comp validate-arities (partial map keys)))
+  (c-comp validate-arities (partial map keys)))
 
 (defn- intersect-args
   "Returns a sequence of argument names that are common for the given map (as
@@ -115,13 +121,15 @@
     ^clojure.lang.ISeq pairs]
    (let [fun (partial closest-pair args pairs)
          ari (fun false)]
-     (if (> (count args) (count-first ari)) (fun true) ari)))
+     (if (> (count args) (futils.utils/count-first ari)) (fun true) ari)))
   ([^clojure.lang.IPersistentMap args
     ^clojure.lang.ISeq pairs
     ^Boolean use-defaults]
    (->> (partition-all 2 pairs)
         (group-by (arity-counter use-defaults args))
-        (apply max-key first) last (apply min-key count-first))))
+        (c-apply max-key first)
+        last
+        (c-apply min-key futils.utils/count-first))))
 
 (defn- args-picker
   "Returns a function that for the given argument name tries to find its value
@@ -185,11 +193,11 @@
           args-defaults (not-empty (last closest-pair))
           args-to-use   (if (nil? args-defaults) args-given (into args-defaults (or args-given {})))
           args-used     (select-keys args-to-use args-expected)
-          args-unused   (apply dissoc args-to-use (keys args-used))]
+          args-unused   (c-apply dissoc args-to-use (keys args-used))]
       (->> (take-nth 2 closest-pair)
-           (apply concat)
+           (c-apply concat)
            (map (args-picker args-to-use args-unused))
-           (apply f)))))
+           (c-apply f)))))
 
 (defn- keywordize-syms
   "Transforms all elements of linear or associative collection from symbols to
@@ -238,8 +246,7 @@
   that can be satisfied by the given arguments) matching is preformed again but
   with default arguments merged. From the resulting collection of matching arity
   mappings the one element with the least requirements is chosen (that has the
-  lowest count of declared arguments).
-  "
+  lowest count of declared arguments)."
   {:added "0.6"}
   ([f exp-args] `(nameize ~f ~exp-args {}))
   ([f exp-args defaults & more]
@@ -262,43 +269,70 @@
      `(nameize* ~f ~@n))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Composition of functions with named arguments.
+;; Application of named arguments.
 
-(def ^{:private true
-       :added "1.2"
-       :const true
-       :tag clojure.lang.IPersistentMap}
-  comp-defaults
-  {:merge-args false
-   :map-output false})
+(def
+  ^{:added "1.2"
+    :arglists '([^clojure.lang.Fn f & args])}
+  apply
+  "Like apply but works on named arguments. Takes function f and a list of
+  arguments to be passed, were the last argument should be a map that will be
+  decomposed and passed as named arguments.
+
+  Returns the result of calling f."
+  futils.utils/mapply)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Identity function with named arguments.
+
+(defn identity
+  "Like clojure.core/identity but works on named arguments. Returns the
+  arguments as a sequence."
+  {:added "1.2"
+   :tag clojure.lang.ISeq}
+  [& args]
+  args)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Composition of functions with named arguments.
 
 (defn- comp-map-results
   "Transforms the structure given as r into a named arguments list according
   to rules given as the opts map and optionally merging them with the args
   map."
-  {:added "1.2"}
+  {:added "1.2"
+   :arglists '([^clojure.lang.IPersistentMap m
+                ^clojure.lang.IPersistentMap args
+                ^clojure.lang.IPersistentMap opts]
+               [r
+                ^clojure.lang.IPersistentMap args
+                ^clojure.lang.IPersistentMap opts])}
   ([r
     ^clojure.lang.IPersistentMap args
     ^clojure.lang.IPersistentMap opts]
-   (let [ma (:merge-args opts)
-         mo (:map-output opts)]
+   (let [is-map (map? r)
+         ma (:merge-args  opts)
+         mo (:map-output  opts)
+         rk (:rename-keys opts)
+         rp (:post-rename opts)]
      (as-> r $
-       (if (or mo (not (map? $))) {(if (false? mo) :out mo) $} $)
+       (if (and rk is-map) (clojure.set/rename-keys $ rk)      $)
+       (if (or mo (not is-map)) {(if (false? mo) :out mo) $}   $)
        (if ma (if (true? ma) (merge args $) (assoc $ ma args)) $)
-       (mapcat identity $)))))
+       (if rp (clojure.set/rename-keys $ rp)                   $)
+       (mapcat c-identity $)))))
 
 (defn- comp-prep-opts
   "Creates a function that prepares options for comp-map-results."
   {:added "1.2"
    :tag clojure.lang.IFn}
   [^clojure.lang.IPersistentMap defl-opts]
-  (let [defl-opts (merge comp-defaults defl-opts)]
-    (fn [^clojure.lang.IPersistentMap opts]
-      (as-> opts $
-        (if (map? $) $ {:f $})
-        (merge defl-opts $)
-        (update $ :map-output #(if (true? %) :out (or % false)))
-        (update $ :merge-args #(or % false))))))
+  (fn [^clojure.lang.IPersistentMap opts]
+    (as-> opts $
+      (if (map? $) $ {:f $})
+      (merge defl-opts $)
+      (update $ :map-output #(if (true? %) :out (or % false)))
+      (update $ :merge-args #(or % false)))))
 
 (defn- comp-core
   "Composes functions with named arguments represented as maps where :f entry
@@ -313,30 +347,33 @@
                [^clojure.lang.IPersistentMap a, ^clojure.lang.IPersistentMap b])}
   (^clojure.lang.IFn [] identity)
   (^clojure.lang.IFn [a]
-   (let [fa (if (map? a) (:f a) a)
-         oa (if (map? a) (dissoc a :f) nil)]
+   (let [ma (map? a)
+         fa (if ma (:f a) a)
+         oa (if ma (dissoc a :f) nil)]
      (fn
        ([]            (comp-map-results (fa) nil oa))
        ([k v]         (comp-map-results (fa k v) {k v} oa))
        ([k v z x]     (comp-map-results (fa k v z x) {k v z x} oa))
-       ([k v z x c v] (comp-map-results (fa k v z x c v) {k v z x c v} oa))
-       ([k v z x c v & args]
-        (let [args (list* k v z x c v args)
-              fbrt (comp-map-results (apply fa args) (apply array-map args) oa)]
-          (apply fa fbrt))))))
+       ([k v z x c d] (comp-map-results (fa k v z x c d) {k v z x c d} oa))
+       ([k v z x c d & args]
+        (let [args (list* k v z x c d args)
+              fbrt (comp-map-results (c-apply fa args)
+                                     (c-apply array-map args) oa)]
+          (c-apply fa fbrt))))))
   (^clojure.lang.IFn [a, ^clojure.lang.IPersistentMap b]
    (let [fa (if (map? a) (:f a) a)
          fb (:f b)
          ob (dissoc b :f)]
      (fn
-       ([]            (apply fa (comp-map-results (fb) nil ob)))
-       ([k v]         (apply fa (comp-map-results (fb k v) {k v} ob)))
-       ([k v z x]     (apply fa (comp-map-results (fb k v z x) {k v z x} ob)))
-       ([k v z x c v] (apply fa (comp-map-results (fb k v z x c v) {k v z x c v} ob)))
-       ([k v z x c v & args]
-        (let [args (list* k v z x c v args)
-              fbrt (comp-map-results (apply fb args) (apply array-map args) ob)]
-          (apply fa fbrt)))))))
+       ([]            (c-apply fa (comp-map-results (fb) nil ob)))
+       ([k v]         (c-apply fa (comp-map-results (fb k v) {k v} ob)))
+       ([k v z x]     (c-apply fa (comp-map-results (fb k v z x) {k v z x} ob)))
+       ([k v z x c d] (c-apply fa (comp-map-results (fb k v z x c d) {k v z x c d} ob)))
+       ([k v z x c d & args]
+        (let [args (list* k v z x c d args)
+              fbrt (comp-map-results (c-apply fb args)
+                                     (c-apply array-map args) ob)]
+          (c-apply fa fbrt)))))))
 
 (defn- comp-parse-args
   "Parses arguments for comp and returns a sequence of maps describing
@@ -344,18 +381,64 @@
   transformed and structured."
   {:added "1.2"
    :tag clojure.lang.ISeq}
-  [args]
+  [^clojure.lang.ISeq args]
   (let [fargs (first args)
         largs  (last args)
         ff (if (fn? fargs) fargs (:f fargs))
         fl (if (fn? largs) largs (:f largs))
         [fns opts] (if ff
                      (if fl [args nil] [(butlast args) largs])
-                     (if fl [(next args) fargs] [(list identity) (merge fargs largs)]))
+                     (if fl [(next args) fargs] [(list c-identity) (merge fargs largs)]))
         opts (comp-prep-opts opts)]
     (map opts fns)))
 
 (defn comp
+  "Takes a set of functions that accept named arguments and returns a function
+  object that is the composition of those functions. The returned function
+  takes named arguments, applies the rightmost of functions to the arguments,
+  the next function (right-to-left) to the result, etc.
+
+  Each function should return a map that will be used to generate named
+  arguments for the next function in the execution chain. If a function does
+  not return a map its resulting value will be assigned to a key of newly
+  created map. The default name of this key will be :out unless the
+  option :map-output had been used (see the explanations below).
+
+  The returned value of the last called function is not transformed in any way
+  and there is no need for it to be a map.
+
+  Functions can be expressed as function objects or as maps. In the second
+  case the map must contain :f key with function object assigned to it and may
+  contain optional, controlling options which are:
+
+  - :merge-args false (default) or true or a key,
+  - :map-output false (default) or true or a key,
+  - :rename-keys  nil (default) or a map,
+  - :post-rename  nil (default) or a map.
+
+  The :merge-args option, when is not set to false nor nil, causes function
+  arguments to be merged with a returned map. If the key is given they all
+  will be stored under specified key of this map. If the assigned value is set
+  to true then they will be merged. If two keys are the same the association
+  from arguments is overwritten by the entry being returned by a function.
+
+  The :map-output causes the returned value to be stored under a specified key
+  of a resulting map. If the option value is set to true then the key name
+  will be :out.
+
+  The :rename-keys option causes keys of a resulting map to be renamed
+  according to the given map. The transformation will be performed on a
+  returned value (if it's a map), before any other changes (output mapping or
+  arguments merging).
+
+  The :post-rename option works in the same way as :rename-keys but it's
+  performed after all other transformations are applied.
+
+  Defaults for the options described above may be given by passing a map as a
+  first or last argument when calling the comp function. Such a map should not
+  contain :f key.
+
+  The comp function returns a function object."
   {:added "1.2"}
   (^clojure.lang.IFn [] identity)
   (^clojure.lang.IFn [f] (comp-core (first (comp-parse-args [f]))))
@@ -365,10 +448,12 @@
        (comp-core (first args))
        (reduce comp-core args)))))
 
-;; todo: detect how many funcs is really there and in case of just one.. (reduce calls it!)
-
 (defn comp-explain
+  "Works like futils.named/comp but instead of composing function it shows the
+  execution chain represented as a map."
   {:added "1.2"}
   (^clojure.lang.IFn [] #'identity)
   (^clojure.lang.IFn [f] (first (comp-parse-args [f])))
-  (^clojure.lang.IFn [f & more] (comp-parse-args (cons f more))))
+  (^clojure.lang.IFn [f & more]
+   (let [args (comp-parse-args (cons f more))]
+     (if (<= (count args) 1) (first args) args))))
