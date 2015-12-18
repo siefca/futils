@@ -1,5 +1,9 @@
 # History of futils releases
 
+## 1.2.1 (2015-12-18)
+
+- Added `:use-seq` and `:apply-raw` transforming options to `futils.named/comp`.
+
 ## 1.2.0 (2015-12-18)
 
 - Added `futils.named/comp` (function composition).

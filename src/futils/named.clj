@@ -296,8 +296,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Composition of functions with named arguments.
 
+(defn- comp-map-transform
+  "Transforms the map given as m into a named arguments list according to
+  rules given as the opts map and optionally merging them with the args map."
+  {:added "1.2"
+   :tag clojure.lang.ISeq}
+  [^clojure.lang.IPersistentMap m
+   ^clojure.lang.IPersistentMap args
+   ^clojure.lang.IPersistentMap opts]
+  (let [ma (:merge-args  opts)
+        mo (:map-output  opts)
+        rk (:rename-keys opts)
+        rp (:post-rename opts)]
+    (as-> m $
+      (if rk (clojure.set/rename-keys $ rk)                   $)
+      (if mo {mo $}                                           $)
+      (if ma (if (true? ma) (merge args $) (assoc $ ma args)) $)
+      (if rp (clojure.set/rename-keys $ rp)                   $)
+      (mapcat c-identity $))))
+
 (defn- comp-map-results
-  "Transforms the structure given as r into a named arguments list according
+  "Transforms a structure given as r into a named arguments list according
   to rules given as the opts map and optionally merging them with the args
   map."
   {:added "1.2"
@@ -310,17 +329,49 @@
   ([r
     ^clojure.lang.IPersistentMap args
     ^clojure.lang.IPersistentMap opts]
-   (let [is-map (map? r)
-         ma (:merge-args  opts)
-         mo (:map-output  opts)
-         rk (:rename-keys opts)
-         rp (:post-rename opts)]
-     (as-> r $
-       (if (and rk is-map) (clojure.set/rename-keys $ rk)      $)
-       (if (or mo (not is-map)) {(if (false? mo) :out mo) $}   $)
-       (if ma (if (true? ma) (merge args $) (assoc $ ma args)) $)
-       (if rp (clojure.set/rename-keys $ rp)                   $)
-       (mapcat c-identity $)))))
+   (if (:apply-raw opts)
+
+     ;; handling raw output
+     ;; by converting it to a sequence:
+     (if (map? r)
+       (mapcat c-identity r)
+       (if (sequential? r) r [r]))
+
+     ;; handling output by converting it to a map
+     ;; with possible transformations:
+     (let [is-map (map? r)
+           opts (select-keys opts [:merge-args
+                                   :map-output
+                                   :rename-keys
+                                   :post-rename
+                                   :use-seq])]
+       (if (and (:use-seq opts)
+                (not is-map)
+                (sequential? r)
+                (even? (count r)))
+
+         ;; handling output that is declared as sequential
+         ;; by converting it to a map:
+         (if (= (count opts) 1)
+
+           ;; if there are no transformations
+           ;; just return the seq:
+           r
+
+           ;; otherwise produce a map and transform it:
+           (comp-map-transform (c-apply array-map r) args opts))
+
+         ;; handling other output
+         ;; it may be a map or value of other kind:
+         (if (map? r)
+
+           ;; it's a map:
+           (comp-map-transform r args opts)
+
+           ;; it's some value that need to become the element of a map:
+           (comp-map-transform {(or (:map-output opts) :out) r}
+                               args
+                               (dissoc opts :map-output :rename-keys))))))))
 
 (defn- comp-prep-opts
   "Creates a function that prepares options for comp-map-results."
@@ -331,8 +382,7 @@
     (as-> opts $
       (if (map? $) $ {:f $})
       (merge defl-opts $)
-      (update $ :map-output #(if (true? %) :out (or % false)))
-      (update $ :merge-args #(or % false)))))
+      (if (true? (:map-output $)) (assoc $ :map-output :out) $))))
 
 (defn- comp-core
   "Composes functions with named arguments represented as maps where :f entry
@@ -395,11 +445,12 @@
   takes named arguments, applies the rightmost of functions to the arguments,
   the next function (right-to-left) to the result, etc.
 
-  Each function should return a map that will be used to generate named
-  arguments for the next function in the execution chain. If a function does
-  not return a map its resulting value will be assigned to a key of newly
-  created map. The default name of this key will be :out unless the
-  option :map-output had been used (see the explanations below).
+  Each function should return a map or a sequential collection (see :use-seq
+  switch) that will be used to generate named arguments for the next function
+  in the execution chain. If a function does not return a map its resulting
+  value will be assigned to a key of newly created map. The default name of
+  this key will be :out unless the option :map-output had been used (see the
+  explanations below).
 
   The returned value of the last called function is not transformed in any way
   and there is no need for it to be a map.
@@ -408,10 +459,12 @@
   case the map must contain :f key with function object assigned to it and may
   contain optional, controlling options which are:
 
-  - :merge-args false (default) or true or a key,
-  - :map-output false (default) or true or a key,
+  - :merge-args   nil (default) or true or a key,
+  - :map-output   nil (default) or true or a key,
   - :rename-keys  nil (default) or a map,
-  - :post-rename  nil (default) or a map.
+  - :post-rename  nil (default) or a map,
+  - :use-seq      nil (default) or true,
+  - :apply-raw    nil (default) or true.
 
   The :merge-args option, when is not set to false nor nil, causes function
   arguments to be merged with a returned map. If the key is given they all
@@ -430,6 +483,18 @@
 
   The :post-rename option works in the same way as :rename-keys but it's
   performed after all other transformations are applied.
+
+  The :use-seq option has the effect only if the returned value is a
+  sequential collection having even number of arguments. If it's set then the
+  sequence is changed into a map for further processing (including renaming
+  keys) instead of being put as a value associated with some key.
+
+  The :apply-raw option is for performance reasons. Use it with care. It
+  disables checks and most of the transformations and causes wrapper to assume
+  that the resulting structure is either single value, sequential collection
+  or a map. If it's an atomic value or a map, it will change it into sequence
+  ready to be applied as named arguments when calling the next function. If
+  it's a sequence then nothing will be changed.
 
   Defaults for the options described above may be given by passing a map as a
   first or last argument when calling the comp function. Such a map should not

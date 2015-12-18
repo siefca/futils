@@ -251,11 +251,12 @@ returns a function object that is the composition of those functions. The
 returned function takes named arguments, applies the rightmost of functions to
 the arguments, the next function (right-to-left) to the result, etc.
 
-Each function should return a map that will be used to generate named
-arguments for the next function in the execution chain. If a function does not
-return a map its resulting value will be assigned to a key of newly created
-map. The default name of this key will be :out unless the option :map-output
-had been used (see the explanations below).
+Each function should return a map or a sequential collection (see `:use-seq`
+switch) that will be used to generate named arguments for the next function in
+the execution chain. If a function does not return a map its resulting value
+will be assigned to a key of newly created map. The default name of this key
+will be `:out` unless the option `:map-output` had been used (see the
+explanations below).
 
 The returned value of the last called function is not transformed in any way
 and there is no need for it to be a map.
@@ -264,10 +265,12 @@ Functions can be expressed as function objects or as maps. In the second
 case the map must contain `:f` key with function object assigned to it and may
 contain optional, controlling options which are:
 
-* `:merge-args`: `false` (default) or `true` or a key,
-* `:map-output`: `false` (default) or `true` or a key,
-* `:rename-keys`   `nil` (default) or a map,
-* `:post-rename`   `nil` (default) or a map.
+* `:merge-args`:  `false` (default) or `true` or a key,
+* `:map-output`:  `false` (default) or `true` or a key,
+* `:rename-keys`:    `nil` (default) or a map,
+* `:post-rename`:    `nil` (default) or a map,
+* `:use-seq`:            `nil` (default) or `true`,
+* `:apply-raw`:        `nil` (default) or `true`.
 
 The `:merge-args` option, when is not set to `false` nor `nil`, causes
 function arguments to be merged with a returned map. If the key name is given
@@ -286,6 +289,18 @@ it's a map), before any other changes (output mapping or arguments merging).
 
 The `:post-rename` option works in the same way as `:rename-keys` but it's
 performed after all other transformations are applied.
+
+The `:use-seq` option has the effect only if the returned value is a sequential
+collection having even number of arguments. If it's set then the sequence is
+changed into a map for further processing (including renaming keys) instead of
+being put as a value associated with some key.
+
+The `:apply-raw` option is for performance reasons. Use it with care. It
+disables checks and most of the transformations and causes wrapper to assume
+that the resulting structure is either single value, sequential collection or
+a map. If it's an atomic value or a map, it will change it into sequence ready
+to be applied as named arguments when calling the next function. If it's a
+sequence then nothing will be changed.
 
 Defaults for the options described above may be given by passing a map as a
 first or last argument when calling the `comp` function. Such a map should not
