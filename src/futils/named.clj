@@ -356,10 +356,8 @@
        ([k v z x]     (comp-map-results (fa k v z x) {k v z x} oa))
        ([k v z x c d] (comp-map-results (fa k v z x c d) {k v z x c d} oa))
        ([k v z x c d & args]
-        (let [args (list* k v z x c d args)
-              fbrt (comp-map-results (c-apply fa args)
-                                     (c-apply array-map args) oa)]
-          (c-apply fa fbrt))))))
+        (let [args (list* k v z x c d args)]
+          (comp-map-results (c-apply fa args) (c-apply array-map args) oa))))))
   (^clojure.lang.IFn [a, ^clojure.lang.IPersistentMap b]
    (let [fa (if (map? a) (:f a) a)
          fb (:f b)
@@ -371,8 +369,7 @@
        ([k v z x c d] (c-apply fa (comp-map-results (fb k v z x c d) {k v z x c d} ob)))
        ([k v z x c d & args]
         (let [args (list* k v z x c d args)
-              fbrt (comp-map-results (c-apply fb args)
-                                     (c-apply array-map args) ob)]
+              fbrt (comp-map-results (c-apply fb args) (c-apply array-map args) ob)]
           (c-apply fa fbrt)))))))
 
 (defn- comp-parse-args
@@ -443,10 +440,11 @@
   (^clojure.lang.IFn [] identity)
   (^clojure.lang.IFn [f] (comp-core (first (comp-parse-args [f]))))
   (^clojure.lang.IFn [f & more]
-   (let [args (comp-parse-args (cons f more))]
-     (if (<= (count args) 1)
-       (comp-core (first args))
-       (reduce comp-core args)))))
+   (let [fns  (comp-parse-args (cons f more))
+         nfns (next fns)]
+     (if nfns
+       (reduce comp-core fns)
+       (comp-core (first fns))))))
 
 (defn comp-explain
   "Works like futils.named/comp but instead of composing function it shows the

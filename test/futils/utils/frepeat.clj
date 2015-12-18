@@ -50,10 +50,10 @@
 
   (def notfun)
   
-  (frepeat)        => (throws clojure.lang.ArityException)
-  (frepeat   1)    => (throws java.lang.ClassCastException)
-  (frepeat nil)    => (throws java.lang.NullPointerException)
-  (frepeat "a")    => (throws java.lang.ClassCastException)
-  (frepeat notfun) => (throws java.lang.IllegalStateException)
-  (frepeat String) => (throws java.lang.ClassCastException))
+  (frepeat)         => (throws clojure.lang.ArityException)
+  (frepeat   1)     => (throws java.lang.ClassCastException)
+  (frepeat nil)     => (throws java.lang.NullPointerException)
+  (frepeat "a")     => (throws java.lang.ClassCastException)
+  (frepeat notfun)  => (throws java.lang.IllegalStateException)
+  (frepeat String)  => (throws java.lang.ClassCastException))
 

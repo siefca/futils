@@ -1,5 +1,12 @@
 # History of futils releases
 
+## 1.2.0 (2015-12-18)
+
+- Added `futils.named/comp` (function composition).
+- Added `futils.named/identity` (identity function).
+- Added `futils.named/apply` (named arguments application).
+- Documentation updated and reformatted (removed subsubsections).
+
 ## 1.0.2 (2015-12-06)
 
 - Added initialization function and dev-mode detection.

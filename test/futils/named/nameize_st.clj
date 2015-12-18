@@ -44,11 +44,11 @@
                       '[:a :b :c &rest] {:a 1 :e 5}))
 
 
-  (nfun)                     => '(5)                   ; matched: [a]
-  (nfun :a 1)                => '(1)                   ; matched: [a]
-  (nfun :a 1 :b 2)           => '(1 2)                 ; matched: [a b]
-  (nfun :a 1 :b 2 :c 3)      => '(1 2 3 {:e 5})        ; matched: [a b c &rest]
-  (nfun :a 1 :b 2 :c 3 :d 4) => '(1 2 3 {:d 4 :e 5}))  ; matched: [a b c &rest]
+  (nfun)                      => '(5)                   ; matched: [a]
+  (nfun :a 1)                 => '(1)                   ; matched: [a]
+  (nfun :a 1 :b 2)            => '(1 2)                 ; matched: [a b]
+  (nfun :a 1 :b 2 :c 3)       => '(1 2 3 {:e 5})        ; matched: [a b c &rest]
+  (nfun :a 1 :b 2 :c 3 :d 4)  => '(1 2 3 {:d 4 :e 5}))  ; matched: [a b c &rest]
 
 [[{:tag "nameize*-usage-notfun" :title "Handling invalid values by <code>nameize*</code>"}]]
 ^{:refer futils.named/nameize* :added "0.6"}

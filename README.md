@@ -8,11 +8,11 @@ arguments, transforming positional-based arities into named ones and so on.
 
 ## Installation
 
-The current release is 1.0.2. To use futils in your project, add the following
+The current release is 1.2.0. To use futils in your project, add the following
 to the `dependencies` section of `project.clj`:
 
 ```
-[pl.randomseed/futils "1.0.2"]
+[pl.randomseed/futils "1.2.0"]
 ```
 
 ## Components
@@ -20,15 +20,17 @@ to the `dependencies` section of `project.clj`:
 Currently prvided macros and functions are:
 
 * [`argc`][argc] – counts arguments a function takes (for all arities),
+* [`apply`][apply] – works like `clojure.core/apply` but for named arguments,
+* [`comp`][comp] – works like `clojure.core/comp` but for named arguments,
+* [`frepeat`][frepeat] – creates a sequence of returned values using a function
+  with named parameters,
+* [`identity`][identity] – works like `clojure.core/identity` but for named arguments,
+* [`nameize`][nameize] – transforms a function so it accepts named arguments,
+* [`nameize*`][nameize*] – like `nameize` but requires symbols to be quoted,
 * [`relax`][relax] – wraps a function in a way that it accepts any number of
   arguments,
 * [`relax*`][relax*] – like `relax` but it requires to explicitly
-  describe the accepted arities,
-* [`nameize`][nameize] – transforms a function so it accepts named arguments,
-* [`nameize*`][nameize*] – like `nameize` but requires symbols to be quoted,
-* [`frepeat`][frepeat] – creates a sequence of returned values using a function
-  with named parameters,
-* [`mapply`][mapply] – works like apply but for named arguments.
+  describe the accepted arities.
 
 ## Documentation
 
@@ -90,6 +92,15 @@ Full documentation with usage examples is available on:
    :val 1
    :coll [1 1 2 3])
 ; => 8
+
+;; function composition
+;;
+(defn f1 [& {:as args}] (assoc args :f1 1))
+(defn f2 [& {:as args}] (assoc args :f2 2))
+(def f (futils.named/comp f1 f2))
+
+(f :a 1 :b 2)
+; => {:a 1 :b 2 :f1 1 :f2 2}
 ```
 
 ## Examples
@@ -123,5 +134,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [nameize]:    https://randomseed.pl/software/futils/#nameize
 [nameize*]:   https://randomseed.pl/software/futils/#nameize*
 [frepeat]:    https://randomseed.pl/software/futils/#frepeat
-[mapply]:     https://randomseed.pl/software/futils/#mapply
-
+[apply]:      https://randomseed.pl/software/futils/#apply
+[comp]:       https://randomseed.pl/software/futils/#comp
+[identity]:   https://randomseed.pl/software/futils/#identity
