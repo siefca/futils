@@ -218,10 +218,30 @@
   numbers. If the exact match is not found it seeks for the first number that
   is bigger than n. If there are no bigger nor exact numbers it returns the
   last number from the given sequence."
-  {:added "1.0"}
-  [^long n
-   ^clojure.lang.ISeq nums]
+  {:added "1.0"
+   :tag long}
+  ^long [^long n, ^clojure.lang.ISeq nums]
   (if-let [n (some #(when (<= n %) %) nums)] n (last nums)))
+
+(defn- relax-calculate-pads
+  "Calculates padding values for relax* function."
+  {:added "1.3"
+   :tag clojure.lang.ISeq}
+  [^long padn
+   ^long near
+   ^long carg
+   ^clojure.lang.IPersistentVector more]
+  (let [[pad-fn args vari pad-val] more]
+    (when (pos? padn)
+      (if (nil? pad-fn)
+        (repeat padn pad-val)
+        (let [frargs {:args-received args
+                      :arity-matched near
+                      :variadic-used vari}
+              prargs (if (zero? carg)
+                       frargs
+                       (assoc frargs :previous (last args)))]
+          (frepeat padn pad-fn prargs))))))
 
 (defmacro relax
   "Returns a variadic function object that calls the given function f,
@@ -345,22 +365,13 @@
   (let [arit (if (sorted? arities) arities (sort arities))]
     (fn [& args]
       (let [args (or args ())
-            carg (count args)
-            near (nearest-count carg arit)
+            carg ^long (long (count args))
+            near ^long (nearest-count carg arit)
             vari (and variadic (= near (last arit)))
-            expe (if vari (dec near) near)
-            tken (if vari (max expe carg) expe)
-            padn (- expe carg)
-            pads (when (pos? padn)
-                   (if (nil? pad-fn)
-                     (repeat padn pad-val)
-                     (let [frargs {:args-received args
-                                   :arity-matched near
-                                   :variadic-used vari}
-                           prargs (if (zero? carg)
-                                    frargs
-                                    (assoc frargs :previous (last args)))]
-                       (frepeat padn pad-fn prargs))))
+            expe ^long (if vari (dec near) near)
+            tken ^long (if vari (max expe carg) expe)
+            padn ^long (- expe carg)
+            pads (relax-calculate-pads padn near carg [pad-fn args vari pad-val])
             adja (take tken (concat args pads))
             resu (apply f adja)]
         (if verbose

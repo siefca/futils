@@ -31,7 +31,8 @@
 (defn count-first
   "Counts elements of a collection which is the first element of a given
   collection."
-  {:added "0.7"}
+  {:added "0.7"
+   :tag long}
   ^long [^clojure.lang.ISeq coll]
   (count (first coll)))
 
@@ -60,7 +61,7 @@
   match."
   {:added "0.1"
    :tag long}
-  [^clojure.lang.IPersistentSet s ^long v]
+  ^long [^clojure.lang.IPersistentSet s ^long v]
   (if-let [x (first (subseq s >= v))]
     x
     (when-let [x (first (rsubseq s < v))] x)))
@@ -72,7 +73,7 @@
   "Ensures that a given value is positive or 0. If it's negative it returns 0."
   {:added "0.1"
    :tag long}
-  [^long n]
+  ^long [^long n]
   (if (neg? n) 0 n))
 
 (defn pos-
@@ -80,7 +81,7 @@
   value is negative, it will return 0."
   {:added "0.3"
    :tag long}
-  [^long x ^long y]
+  ^long [^long x ^long y]
   (non-negative (- x y)))
 
 (defn require-fn
@@ -111,7 +112,7 @@
   "Returns the number of arguments Java method takes."
   {:added "0.1"
    :tag long}
-  [^java.lang.reflect.Method m]
+  ^long [^java.lang.reflect.Method m]
   (alength (.getParameterTypes m)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

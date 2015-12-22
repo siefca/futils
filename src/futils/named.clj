@@ -102,8 +102,8 @@
    ^clojure.lang.IPersistentMap args]
   (if use-defaults
     (fn ^long [^clojure.lang.ISeq e]
-      (let [arit (first e)
-            defl (last e)]
+      (let [arit ^clojure.lang.ISeq (first e)
+            defl ^clojure.lang.IPersistentMap (last e)]
         (count
          (if (nil? defl)
            (intersect-args args arit)
@@ -119,9 +119,10 @@
    :tag clojure.lang.ISeq}
   ([^clojure.lang.IPersistentMap args
     ^clojure.lang.ISeq pairs]
-   (let [fun (partial closest-pair args pairs)
-         ari (fun false)]
-     (if (> (count args) (futils.utils/count-first ari)) (fun true) ari)))
+   (let [ari (closest-pair args pairs false)]
+     (if (> (count args) (futils.utils/count-first ari))
+       (closest-pair args pairs true)
+       ari)))
   ([^clojure.lang.IPersistentMap args
     ^clojure.lang.ISeq pairs
     ^Boolean use-defaults]
