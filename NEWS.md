@@ -1,5 +1,9 @@
 # History of futils releases
 
+## 1.2.2 (2016-05-30)
+
+- Fixed metadata hash maps positions of defs in a few places.
+
 ## 1.2.1 (2015-12-18)
 
 - Added `:use-seq` and `:apply-raw` transforming options to `futils.named/comp`.

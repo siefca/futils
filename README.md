@@ -3,16 +3,16 @@
 [![Build Status](https://travis-ci.org/siefca/futils.png?branch=master)](https://travis-ci.org/siefca/futils)
 
 This library defines forms that abstract some common operations on functions,
-like counting their arguments, creating wrappers, passing proper number of
-arguments, transforming positional-based arities into named ones and so on.
+including counting arguments, creating wrappers, passing proper number of
+arguments and transforming positional-based arities into named ones.
 
 ## Installation
 
-The current release is 1.2.1. To use futils in your project, add the following
+The current release is 1.2.2. To use futils in your project, add the following
 to the `dependencies` section of `project.clj`:
 
 ```
-[pl.randomseed/futils "1.2.1"]
+[pl.randomseed/futils "1.2.2"]
 ```
 
 ## Components
@@ -110,7 +110,7 @@ Examples can be found in the documentation or in test files located under
 
 ## License
 
-Copyright © 2015 Paweł Wilk
+Copyright © 2015-2016 Paweł Wilk
 
 Futils is copyrighted software owned by Paweł Wilk (pw@gnu.org). You may
 redistribute and/or modify this software as long as you comply with the terms of

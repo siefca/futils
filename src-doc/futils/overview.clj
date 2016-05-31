@@ -2,8 +2,8 @@
 
 [[:chapter {:title "Introduction"}]]
 
-" `futils` is a library that adds some abstractions for managing functions in
-Clojure.
+" `futils` is a library that adds some abstractions for managing and
+transforming functions in Clojure.
 
 Currently provided macros and functions are:
 
@@ -48,7 +48,7 @@ or:
 
 "
 The `futils.args` namespace contains functions that provide positional
-arguments management, like counting or transforming other functions so they
+arguments management, like counting arguments or transforming functions so they
 can accept variable number of arguments (with optional padding)."
 
 [[:subsection {:title "argc" :tag "argc"}]]

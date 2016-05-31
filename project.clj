@@ -1,14 +1,14 @@
-(defproject pl.randomseed/futils "1.2.1"
+(defproject pl.randomseed/futils "1.2.2"
   :description "Function Utilities library"
   :url "https://randomseed.pl/software/futils"
 
   :license {:name "LGPL License", :url "https://opensource.org/licenses/lgpl-3.0.html"}
   :scm     {:name "git", :url "https://github.com/siefca/futils"}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]]
 
-  :profiles {:dev {:dependencies [[midje "1.8.2"]
-                                  [helpshift/hydrox "0.1.3"]
+  :profiles {:dev {:dependencies [[midje "1.8.3"]
+                                  [helpshift/hydrox "0.1.15"]
                                   [im.chit/vinyasa.inject "0.3.4"]]
                    :plugins [[lein-midje "3.2"]
                              [lein-environ "1.0.1"]]
