@@ -65,21 +65,23 @@
   [^clojure.lang.ISeq colls]
   (doseq [m colls] (validate-args m)))
 
-(def validate-named-args
-  "Validates associative collection containing named arguments by testing if
-  the keys contain reserved (special) symbols."
+(def
   ^{:added "0.6"
     :private true
     :tag nil
     :arglists '([^clojure.lang.IPersistentMap m])}
+  validate-named-args
+  "Validates associative collection containing named arguments by testing if
+  the keys contain reserved (special) symbols."
   (c-comp validate-args (partial keys)))
 
-(def validate-named-arities
-  "Validates a sequence of named arguments expressed as maps."
+(def
   ^{:added "0.7"
     :private true
     :tag nil
     :arglists '([^clojure.lang.ISeq coll])}
+  validate-named-arities
+  "Validates a sequence of named arguments expressed as maps."
   (c-comp validate-arities (partial map keys)))
 
 (defn- intersect-args

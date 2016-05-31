@@ -27,8 +27,9 @@
     (c/apply c/map f coll colls)
     (c/map f coll)))
 
-(def apply
+(def
   ^{:added "0.8"}
+  apply
   mapply)
 
 (defn list
