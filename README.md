@@ -6,6 +6,13 @@ This library defines forms that abstract some common operations on functions,
 including counting arguments, creating wrappers, passing proper number of
 arguments and transforming positional-based arities into named ones.
 
+# !!!MOVED!!!
+
+THIS REPOSITORY IS CONTINUED AS `randomseed-io/futils`:
+
+* http://github.com/randomseed-io/futils
+* https://clojars.org/io.randomseed/futils
+
 ## Installation
 
 The current release is 1.2.2. To use futils in your project, add the following
